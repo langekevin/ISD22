@@ -2,7 +2,7 @@
 ISD22 Project
 
 # Group Members
-- Anastasiya Nikitina
+- Anastassiya Nikitina
 - Tobias Thomé
 - Gian-Luca Frisch
 - Kevin Lange
