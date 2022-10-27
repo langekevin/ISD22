@@ -32,3 +32,5 @@ ISD22 Project
 ## 4. Game
 
 - Card game like Rome, Uno, etc.
+- Play against a bot or if possible in multiplayer
+- Have a user score and ranking
