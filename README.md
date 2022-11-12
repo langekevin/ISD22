@@ -42,11 +42,11 @@ ISD22 Project - Pacman
 If you have successfully downloaded the code from github, the first thing you have to do is to execute the migration of the project in order to create the database.
 
 ```bash
-python -m manage.py migrate
+python manage.py migrate
 ```
 
 Afterwards you can start the development server on your local machine
 
 ```bash
-python -m manage.py runserver
+python manage.py runserver
 ```
