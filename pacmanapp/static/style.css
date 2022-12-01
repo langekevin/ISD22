@@ -1,1 +1,8 @@
 /* Put your custom styles here */
+.profile {
+    background: url("https://images2.alphacoders.com/897/897160.jpg");
+    background-position: center;
+    background-size: contain;
+    height: calc(100vh - 3.5rem);
+    width: 100vw;
+}
