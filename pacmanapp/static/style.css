@@ -9,69 +9,46 @@
     position:absolute;
 }
 .profile_card {
-    opacity:0.6;
-    background: rgb(0, 39, 196);
-    width:30%;
-    height: 88%;
-    position: absolute;
-    left:35%;
-    top: 6%;
+    background: rgba(0, 39, 196, 0.6);
+    width: 100%;
     border-radius: 20px;
     border-style: solid;
     border-color: yellow;
     padding:40px;
 }
+.wrapper {
+    display: grid;
+    align-content: center;
+    margin: auto;
+    width: 30%;
+    min-width: 400px;
+    height: 100%;
+}
 .profile_text {
     text-align: center;
 }
-.user_name {
-    position:relative;
-    top: 220px;
-    font-size: 30px;
-    color: yellow;
+.profile_info {
+    padding-top: 2rem;
 }
-.user_name:hover {
+.scores {
+    padding-top: 2rem;
+}
+.name_score:hover {
     color: rgb(255, 21, 21);
 }
-.maximum_score {
-    position:relative;
-    top: 250px;
+.name_score {
     font-size: 30px;
     color: yellow;
-}
-.maximum_score:hover {
-    color: rgb(255, 21, 21);
 }
 .top {
     position:relative;
-    top: 270px;
     font-size: 20px;
     color: yellow;
-    display:inline;
+    padding: 7px 50px;
+}
+.frame {
     border-style: solid;
     border-color: yellow;
-    padding: 3px;
-    padding-bottom: 7px;
-    padding-left: 50px;
-    padding-right: 50px;
-}
-.top1 {
-    position:relative;
-    top: 300px;
-    font-size: 20px;
-    color: yellow;
-}
-.top2 {
-    position:relative;
-    top: 310px;
-    font-size: 20px;
-    color: yellow;
-}
-.top3 {
-    position:relative;
-    top: 320px;
-    font-size: 20px;
-    color: yellow;
 }
 .avatar {
     height:130px;
@@ -82,13 +59,14 @@
     border-color: yellow;
     border-radius: 50%;
     padding:10px;
-    top: -145px;
+    opacity: 1;
 }
 .avatar:hover {
-    height:150px;
-    width:150px;
+    margin: 0px;
     padding: 0px;
     border-style: none;
+    transform: scale(1.3)
 }
+
 
 
