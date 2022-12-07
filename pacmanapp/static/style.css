@@ -7,6 +7,10 @@ button.btn {
     border: none;
     font-size:18px;
 }
+button.btn:hover {
+    color: blue;
+
+}
 button.dropdown-toggle:active {
     color:yellow;
 }
