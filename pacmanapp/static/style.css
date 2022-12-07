@@ -1,11 +1,29 @@
 /* Put your custom styles here */
-a.navbar-brand {
-    color: yellow;
+
+/* Navbar */
+button.btn {
+    color:yellow;
+    background-color: transparent;
+    border: none;
+    font-size:18px;
 }
-a.nav-link:hover {
+button.dropdown-toggle:active {
+    color:yellow;
+}
+ul.dropdown-menu {
+    background-color: transparent;
+    border-color: transparent;
+}
+a.dropdown-item {
     color: yellow;
+    font-size: 20px;
+}
+a.dropdown-item:hover {
+    background-color: transparent;
+    color: blue;
 }
 
+/* Profile */
 .profile {
     background: url("https://steamuserimages-a.akamaihd.net/ugc/949579868316400106/667E62BCDC4F0077104EAA826A5D825CDEF5B0C8/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false");
     background-position: center;
