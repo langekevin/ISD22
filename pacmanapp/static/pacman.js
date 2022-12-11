@@ -83,6 +83,43 @@ class Player {
     draw(ctx) {
 
     }
+
+    /**
+     * Saves the next action in due when the user pressed a key.
+     * @param e
+     * @returns {boolean}
+     */
+    keyDown(e) {
+        return true;
+    }
+}
+
+/**
+ * Class for the ghost
+ */
+class Ghost {
+    /**
+     * Initializes the Ghost object
+     * @param color
+     */
+    constructor(color) {
+        /* Variables for the ghost class */
+        this.color = color
+        this.isEatable = false;
+    }
+
+    /**
+     * Available colors of the ghosts
+     * @type {string[]}
+     */
+    static GHOST_SPECS = ['#00FFDE', '#FF0000', '#FFB8DE', '#FFB847'];
+
+    /**
+     * Toggles the is eatable state of the ghost.
+     */
+    toggleEatable(){
+        this.isEatable = !this.isEatable;
+    }
 }
 
 /**
@@ -106,6 +143,50 @@ class Pacman {
          * @type {number}
          */
         this.blockSize = blockSize;
+        this.map = null;
+        this.ghosts = [];
+        this.player = null;
+        this.timer = null;
+        this.currentState = PLAYING_STATES.INITIALIZING;
+    }
+
+    /**
+     * Photos per second that will be rendered to the screen.
+     * @type {number}
+     */
+    static FPS = 30;
+
+    /**
+     * Function prevents default events for key presses if the current state
+     * is not waiting.
+     * @param {object} e
+     */
+    keyPress(e) {
+        if (this.currentState !== PLAYING_STATES.WAITING) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    /**
+     * Function captures the pressed key by the player
+     * @param {object} e
+     * @return {boolean} ???
+     */
+    keyDown(e) {
+        if (e.keyCode === KEYS.N) {
+            // Start new game
+        } else if (e.keyCode === KEYS.S) {
+            // Disable audio
+        } else if (e.keyCode === KEYS.P && this.currentState === PLAYING_STATES.PAUSE) {
+            // Resume to game
+        } else if (e.keyCode === KEYS.P) {
+            // Set game to pause
+            this.currentState = PLAYING_STATES.PAUSE;
+        } else if (state !== PLAYING_STATES.PAUSE) {
+            return this.player.keyDown(e);
+        }
+        return true;
     }
 
     /**
@@ -113,14 +194,24 @@ class Pacman {
      */
     init() {
         // Initialize the map
+        this.map = new Map(this.blockSize);
 
         // Initialize the player
+        this.player = new Player();
 
         // Initialize the ghosts
+        for (let i = 0; i < Ghost.GHOST_SPECS.length; i++) {
+            this.ghosts.push(new Ghost(Ghost.GHOST_SPECS[i]));
+        }
 
-        // Start a timer before the game begins
+        // Set the current state to countdown
+        this.currentState = PLAYING_STATES.COUNT_DOWN;
 
         // Start the main loop
+        document.addEventListener('keydown', this.keyDown, true);
+        document.addEventListener('keypress', this.keyPress, true);
+
+        this.timer = window.setInterval(this.mainLoop, 1000 / Pacman.FPS);
     }
 
     /**
@@ -129,8 +220,25 @@ class Pacman {
      * This method executes every X seconds
      */
     mainLoop(){
-        // Draw the map
+        // Draw the pills
 
+        if (this.currentState === PLAYING_STATES.INITIALIZING) {
+            // Game is currently being initialized
+        } else if (this.currentState === PLAYING_STATES.WAITING) {
+            // Game is in waiting state
+        } else if (this.currentState === PLAYING_STATES.PLAYING) {
+            // Game play is running
+            this.player.move(this.ctx);
+            this.draw();
+        } else if (this.currentState === PLAYING_STATES.COUNT_DOWN) {
+            // Show the countdown for starting the game
+        }
+    }
+
+    /**
+     * Main function for drawing the map as well as the player on the canvas
+     */
+    draw() {
         // Draw the ghosts
 
         // Draw the player
@@ -139,12 +247,25 @@ class Pacman {
 
         // Check if the player somehow collided with a ghost
     }
-
-    /**
-     * Main function for drawing the map as well as the player on the canvas
-     */
-    draw() {
-
-    }
 }
 
+/**
+ * States of the pacman game
+ * @type {{COUNT_DOWN: number, GAME_OVER: number, NOT_STARTED: number, WAITING: number, DYING: number, PLAYING: number, INITIALIZING: number}}
+ */
+const PLAYING_STATES = {
+    NOT_STARTED: 0,
+    WAITING: 1,
+    PLAYING: 2,
+    DYING: 3,
+    GAME_OVER: 4,
+    COUNT_DOWN: 5,
+    INITIALIZING: 6,
+    PAUSE: 7
+}
+
+const KEYS = {
+    N: 0,
+    P: 1,
+    S: 2
+}
