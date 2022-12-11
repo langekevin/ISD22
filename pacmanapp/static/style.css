@@ -9,14 +9,13 @@ button.btn {
 }
 button.btn:hover {
     color: blue;
-
 }
 button.dropdown-toggle:active {
     color:yellow;
 }
 ul.dropdown-menu {
-    background-color: transparent;
-    border-color: transparent;
+    background-color: black;
+    border-color: yellow;
 }
 a.dropdown-item {
     color: yellow;
@@ -26,6 +25,7 @@ a.dropdown-item:hover {
     background-color: transparent;
     color: blue;
 }
+
 
 /* Profile */
 .profile {
