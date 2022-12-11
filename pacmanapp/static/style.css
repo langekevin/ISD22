@@ -1,1 +1,35 @@
 /* Put your custom styles here */
+body {
+    height: 100%;
+}
+
+.canvas {
+    border: 1px solid black;
+}
+
+.h100 {
+    height: 100%;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.pacman {
+    height: 100%;
+    padding-top: 2rem;
+    max-width: 600px;
+    margin: auto;
+}
+
+.background {
+    background: url("https://steamuserimages-a.akamaihd.net/ugc/949579868316400106/667E62BCDC4F0077104EAA826A5D825CDEF5B0C8/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: calc(100vh - 3.5rem);
+    width: 100vw;
+    position: absolute;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
