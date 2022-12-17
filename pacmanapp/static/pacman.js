@@ -7,16 +7,15 @@ window.addEventListener('load', () => {
 
     // Resizing
     const container = document.querySelector("#pacman-container");
-
-    let size = container.offsetWidth / 19;
-    canvas.setAttribute("width", (size * 19) + "px");
-    canvas.setAttribute('height', (size * 22) + 30 + "px");
+    let size = (container.offsetWidth - CANVAS_OFFSET * 2) / 30;
+    canvas.setAttribute("width", (size * 30) + "px");
+    canvas.setAttribute("height", (size * 33) + 30 + "px");
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
     // Initialize Pacman game
-    const pacman = new Pacman(ctx,size);
+    const pacman = new Pacman(ctx, canvas, size);
     pacman.init();
 });
 
@@ -25,7 +24,58 @@ window.addEventListener('load', () => {
  */
 class Map {
     constructor(blockSize) {
-        this.blockSize = blockSize
+        this.blockSize = blockSize;
+        this.mapArray = MAP_ARRAY;
+    }
+
+    drawPills(ctx) {
+        ctx.strokeStyle = '#041556';
+        ctx.lineWidth = 3;
+
+        for (let i = 0; i < LINES.length; i++) {
+            let line = LINES[i];
+            ctx.beginPath();
+
+            for (let j = 0; j < line.length; j++) {
+                let move = line[j];
+                if (move.move) {
+                    ctx.moveTo(move.move[0] * this.blockSize, move.move[1] * this.blockSize);
+                } else if (move.line) {
+                    ctx.lineTo(move.line[0] * this.blockSize, move.line[1] * this.blockSize);
+                } else if (move.curve) {
+                    ctx.quadraticCurveTo(
+                        move.curve[0] * this.blockSize,
+                        move.curve[1] * this.blockSize,
+                        move.curve[2] * this.blockSize,
+                        move.curve[3] * this.blockSize
+                    );
+                }
+            }
+            ctx.stroke();
+        }
+    }
+
+    /**
+     * Resets the map and inserts the new background of the game
+     * @param ctx Context of the canvas object
+     * @param canvas Canvas object
+     */
+    resetCanvas(ctx, canvas) {
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Create the new background
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, width, height);
+    }
+
+    /**
+     * Resets the placed items in the map
+     */
+    resetPlacedItems() {
+        this.mapArray = MAP_ARRAY;
     }
 }
 
@@ -130,14 +180,16 @@ class Pacman {
     /**
      * Initializes the pacman class
      * @param{object} ctx Canvas element where the pacman game should be drawn
+     * @param{object} canvas Canvas object
      * @param{number} blockSize Size of one block of the game.
      */
-    constructor(ctx, blockSize) {
+    constructor(ctx, canvas, blockSize) {
         /**
          * Canvas element
          * @type {Object}
          */
         this.ctx = ctx;
+        this.canvas = canvas;
         /**
          * Size of one block in pixel
          * @type {number}
@@ -211,7 +263,9 @@ class Pacman {
         document.addEventListener('keydown', this.keyDown, true);
         document.addEventListener('keypress', this.keyPress, true);
 
-        this.timer = window.setInterval(this.mainLoop, 1000 / Pacman.FPS);
+        this.timer = window.setInterval(() => {
+            this.mainLoop();
+        }, 1000 / Pacman.FPS);
     }
 
     /**
@@ -220,7 +274,10 @@ class Pacman {
      * This method executes every X seconds
      */
     mainLoop(){
+        this.map.resetCanvas(this.ctx, this.canvas);
+
         // Draw the pills
+        this.map.drawPills(this.ctx);
 
         if (this.currentState === PLAYING_STATES.INITIALIZING) {
             // Game is currently being initialized
@@ -249,6 +306,8 @@ class Pacman {
     }
 }
 
+const CANVAS_OFFSET = 5;
+
 /**
  * States of the pacman game
  * @type {{COUNT_DOWN: number, GAME_OVER: number, NOT_STARTED: number, WAITING: number, DYING: number, PLAYING: number, INITIALIZING: number}}
@@ -267,5 +326,119 @@ const PLAYING_STATES = {
 const KEYS = {
     N: 0,
     P: 1,
-    S: 2
+    S: 2,
+    A: 3,
+    W: 4,
+    D: 5
 }
+
+const MAP_ELEMENTS = {
+    WALL: 0,
+    ITEM: 1,
+    EMPTY: 2,
+    NOT_ALLOWED: 3,
+    BIG_ITEM: 4
+}
+
+/**
+ * Array represents the placement of points the user can collect.
+ * @type {number[][]}
+ */
+const MAP_ARRAY = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 4, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], // Middle
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
+    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
+
+const LINES = [
+    [
+        { move: [0, 16] },
+        { line: [5, 16] },
+        { curve: [6, 16, 6, 17] },
+        { line: [6, 19] },
+        { curve: [6, 20, 5, 20] },
+        { line: [2, 20] },
+        { curve: [1, 20, 1, 21] },
+        { line: [1, 23] },
+        { curve: [1, 24, 2, 24] },
+        { curve: [3, 24, 3, 25] },
+        { curve: [3, 26, 2, 26] },
+        { curve: [1, 26, 1, 27] },
+        { line: [1, 30] },
+        { curve: [1, 31, 2, 31]},
+        { line: [27, 31] },
+        { curve: [28, 31, 28, 30] },
+        { line: [28, 27] },
+        { curve: [28, 26, 27, 26] },
+        { curve: [26, 26, 26, 25] },
+        { curve: [26, 24, 27, 24] },
+        { curve: [28, 24, 28, 23] },
+        { line: [28, 21] },
+        { curve: [28, 20, 27, 20] },
+        { line: [24, 20] },
+        { curve: [23, 20, 23, 19] },
+        { line: [23, 17]},
+        { curve: [23, 16, 24, 16] },
+        { line: [29, 16] }
+    ],
+    [
+        {move: [0, 16.5]},
+        {line: [5, 16.5]},
+        {curve: [5.5, 16.5, 5.5, 17]},
+        {line: [5.5, 19]},
+        {curve: [5.5, 19.5, 5, 19.5]},
+        {line: [1, 19.5]},
+        {curve: [0.5, 19.5, 0.5, 20]}
+    ],
+    [
+        {move: [4, 22]},
+        {line: [5.5, 22]},
+        {curve: [6, 22, 6, 22.5]},
+        {line: [6, 25.5]},
+        {curve: [6, 26, 5.5, 26]},
+        {curve: [5, 26, 5, 25.5]},
+        {line: [5, 24]},
+        {curve: [5, 23.5, 4.5, 23.5]},
+    ],
+    [
+        { move: [4.0, 3.5] },
+        { line: [5.0, 3.5] },
+        { curve: [5.5, 3.5, 5.5, 4.0] },
+        { line: [5.5, 4.0] },
+        { curve: [5.5, 4.5, 5.0, 4.5] },
+        { line: [3.5, 4.5] },
+        { curve: [3.5, 4.5, 3.5, 5.0] },
+        { line: [3.5, 3.0] },
+        { curve: [3.5, 3.5, 3.0, 3.5] }
+    ]
+]
