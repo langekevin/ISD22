@@ -10,9 +10,6 @@ button.btn {
 button.btn:hover {
     color: blue;
 }
-button.dropdown-toggle:active {
-    color:yellow;
-}
 ul.dropdown-menu {
     background-color: black;
     border-color: yellow;
@@ -58,13 +55,6 @@ a.dropdown-item:hover {
     .wrapper {
         margin-top: 4rem;
     }
-}
-.edit_btn{
-    display: block;
-    margin-left: 85%;
-    background-color: transparent;
-    border: none;
-    color: yellow;
 }
 .profile_text {
     text-align: center;
