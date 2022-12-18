@@ -1,5 +1,38 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.2.1/css/all.css" />
+<div class="login-background">
+   <div class="wrapper">
+      <div class="login-box">
+          <h1>Login</h1>
+          <form>
+              <div class="textbox">
+
+                   <input class="input-glf2" type="text" placeholder="First name" />
+              </div>
+               <div class="textbox">
+
+                   <input class="input-glf2" type="text" placeholder="Last name" />
+               </div>
+              <div class="textbox">
+
+                   <input class="input-glf2" type="text" placeholder="E-mail" />
+              </div>
+               <div class="textbox">
+
+                   <input class="input-glf2" type="password" placeholder="Password"/>
+              </div>
+               <div class="textbox">
+
+                   <input class="input-glf2" type="password" placeholder="Re-type Password"/>
+              </div>
+             <button class="btn-glf" type="submit" name="submit">Register</button>
+
+           </form>
+          <button class="btn-glf">Sign in</button>
+      </div>
+   </div>
+</div>
 
 {% endblock %}

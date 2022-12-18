@@ -82,3 +82,11 @@
     background-color: yellow;
     color: black;
 }
+
+.input-glf2 {
+    border:none;
+    border-bottom: 1px solid yellow;
+    padding: 5px 10px;
+    outline: none;
+    width: 100%;
+}
