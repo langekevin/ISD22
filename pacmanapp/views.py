@@ -18,3 +18,7 @@ def profile(requeest):
     Returns the profile.html
     """
     return render(requeest, 'profile.html', {})
+
+
+def registration(request):
+    return render(request, 'registration.html', {})

@@ -3,40 +3,27 @@
 {% block content %}
 
 
-<!DOCTYPE html>
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.2.1/css/all.css" />
 
-<html>
-   <head>
-       <meta charset="utf-8">
-       <title>Transparent Login Form</title>
-       <link href="static/style.css" rel="stylesheet" />
-   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.2.1/css/all.css" />
-       <body>
-   <div class="login-box">
-       <h1>Login</h1>
-       <div class="textbox">
-<i class="fa-solid fa-user"></i>
-            <input type="text" placeholder="Username" name=""value="">
+<div class="login-background">
+   <div class="wrapper">
+      <div class="login-box">
+          <h1>Login</h1>
+          <form>
+              <div class="textbox">
+                   <i class="fa-solid fa-user"></i>
+                   <input class="input-glf" type="text" placeholder="Username" />
+              </div>
+               <div class="textbox">
+                   <i class="fa-solid fa-lock"></i>
+                   <input class="input-glf" type="password" placeholder="Password" />
+               </div>
+             <button class="btn-glf" type="submit" name="submit">Sign in</button>
+
+           </form>
+          <button class="btn-glf">Don`t have an account?</button>
+      </div>
    </div>
-
-   <div class="textbox">
-<i class="fa-solid fa-lock"></i>
-        <input type="password" placeholder="Password" name=""value="">
-       </div>
-
-       <input class="btn" type="button" name="" value="Sign in">
-   </div>
-
-
-
-
-
-
-       <input class="btn" type="button" id="btn1" name="" value="Forgot password?">
-   </div>
-
-
-    <input class=btn type="button" id ="btn2" name="" value="Don`t have an account?">
-   </div>
+</div>
 
 {% endblock %}
