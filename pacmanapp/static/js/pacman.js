@@ -78,7 +78,7 @@ class Map {
         for (let y = 0; y < this.mapArray.length; y++) {
             for (let x = 0; x < this.mapArray[y].length; x++) {
                 if (this.mapArray[y][x] === MAP_ELEMENTS.ITEM) {
-                    ctx.drawImage(this.pizzaImage, (x + 0.3) * this.blockSize, (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y, 8, 8);
+                    ctx.drawImage(this.pizzaImage, (x + 0.3) * this.blockSize, (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
                 } else if (this.mapArray[y][x] === MAP_ELEMENTS.BIG_ITEM) {
                     ctx.drawImage(this.cakeImage, (x + 0.1) * this.blockSize, y * this.blockSize + CANVAS_OFFSET_Y, 16, 16);
                 }
@@ -419,7 +419,7 @@ const MAP_ARRAY = [
     [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
+    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
     [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
