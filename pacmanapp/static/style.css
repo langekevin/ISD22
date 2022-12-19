@@ -1,13 +1,14 @@
 /* Put your custom styles here */
 
 /* Navbar */
-button.btn {
-    color:yellow;
+.btn-color {
+    color: yellow;
+    outline: none;
     background-color: transparent;
     border: none;
-    font-size:18px;
+    font-size: 18px;
 }
-button.btn:hover {
+.btn-color:hover {
     color: blue;
 }
 ul.dropdown-menu {
@@ -71,6 +72,9 @@ a.dropdown-item:hover {
 .name_score {
     font-size: 30px;
     color: yellow;
+}
+[contenteditable] {
+    outline: 0px solid transparent;
 }
 .top {
     position: relative;
