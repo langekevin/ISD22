@@ -108,6 +108,71 @@ class Map {
     resetPlacedItems() {
         this.mapArray = MAP_ARRAY;
     }
+
+    /**
+     * Checks if there is a placed item on the current location and removes it
+     * if possible.
+     * @param {Position} position Current position of the player
+     * @return {number} Value of the item that was removed. 0 if no item was removed
+     */
+    isPlacedItem(position) {
+        if (!Helpers.almostInteger(position.x) && Helpers.almostInteger(position.y)) {
+            return 0;
+        }
+
+        let x = Math.round(position.x);
+        let y = Math.round(position.y);
+        if (this.mapArray[y][x] === MAP_ELEMENTS.ITEM) {
+            this.mapArray[y][x] = MAP_ELEMENTS.EMPTY;
+            return MAP_ELEMENTS.ITEM;
+        } else if (this.mapArray[y][x] === MAP_ELEMENTS.BIG_ITEM) {
+            this.mapArray[y][x] = MAP_ELEMENTS.EMPTY;
+            return MAP_ELEMENTS.BIG_ITEM;
+        }
+        return 0;
+    }
+}
+
+/**
+ * Class position describes the current position of a player or a ghost on the map
+ */
+class Position {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    get x() {
+        return this._x;
+    }
+
+    get y() {
+        return this._y;
+    }
+
+    set x(newX) {
+        this._x = newX;
+    }
+
+    set y(newY) {
+        this._y = newY;
+    }
+}
+
+/**
+ * Class for static helper functions
+ */
+class Helpers {
+
+    /**
+     * Checks if two values are almost equal to the nearest integer
+     * @param{int} value Value that needs to be checked
+     * @return{boolean} True if the value is almost equal to an integer
+     */
+    static almostInteger(value){
+
+        return Math.abs(Math.round(value) - value) < 0.0001;
+    }
 }
 
 /**
@@ -116,19 +181,16 @@ class Map {
 class Player {
     /**
      * Initializes the player
+     * @param{number} blockSize Size of one Grid
      */
-    constructor(blocksize) {
-        this.position = [14.5, 24];
+    constructor(blockSize) {
+        this.position = new Position(14, 24);
         this.direction = KEYS.A;
         this.eaten = false;
         this.due = null;
         this.lives = 3;
         this.score = 0;
-        this.blockSize = blocksize;
-    }
-
-    set direction(keyCode) {
-        this._direction = keyCode;
+        this.blockSize = blockSize;
     }
 
     /**
@@ -149,11 +211,76 @@ class Player {
     /**
      * Calculates the new position of the player.
      * @param{Map} map Instance of the class Map
-     * @returns {{new: number[], old: number[]}}
+     * @returns{{new: Position, old: Position}}
      */
     move(map){
+        let newPosition = null;
+        let oldPosition = this.position;
+        let x = 0, y = 0;
 
-        return {new: [0, 0], old: [1, 0]}
+        if (this.due && this.due !== this.direction) {
+            newPosition = this.getNextPosition(this.due);
+            if ((this.due === KEYS.A || this.due === KEYS.D) && Helpers.almostInteger(newPosition.y)) {
+                x = Math.round(newPosition.x);
+                y = Math.round(newPosition.y);
+                if (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0 || this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0){
+                    this.direction = this.due;
+                } else {
+                    newPosition = null;
+                }
+            } else if ((this.due === KEYS.W || this.due === KEYS.S) && Helpers.almostInteger(newPosition.x)) {
+                x = Math.round(newPosition.x);
+                y = Math.round(newPosition.y);
+                if (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0 || this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0) {
+                    this.direction = this.due;
+                } else {
+                    newPosition = null;
+                }
+            } else {
+                newPosition = null;
+            }
+        }
+
+        if (newPosition === null) {
+            newPosition = this.getNextPosition(this.direction);
+            if (this.onSquare(oldPosition)){
+                let x = Math.round(oldPosition.x);
+                let y = Math.round(oldPosition.y);
+                if (this.direction === KEYS.A && MAP_ARRAY[y][x - 1] === 0) {
+                    newPosition = oldPosition;
+                } else if (this.direction === KEYS.D && MAP_ARRAY[y][x + 1] === 0) {
+                    newPosition = oldPosition;
+                } else if (this.direction === KEYS.W && MAP_ARRAY[y - 1][x] === 0) {
+                    newPosition = oldPosition;
+                } else if (this.direction === KEYS.S && MAP_ARRAY[y + 1][x] === 0) {
+                    newPosition = oldPosition;
+                }
+            }
+        }
+
+        this.position = newPosition;
+        return {new: this.position, old: oldPosition}
+    }
+
+    /**
+     * Checks if the player is currently on a square
+     * @param position Current Position of the player
+     * @return {boolean} True if the player is on a square
+     */
+    onSquare(position){
+        return Helpers.almostInteger(position.x) && Helpers.almostInteger(position.y);
+    }
+
+    /**
+     * Calculates the next position of the player
+     * @param direction Direction in which the player is going
+     * @return {Position} Next Position of the player
+     */
+    getNextPosition(direction) {
+        return new Position(
+                this.position.x + ((direction === KEYS.A && -0.1) || (direction === KEYS.D && 0.1) || 0),
+                this.position.y + ((direction === KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+            )
     }
 
     /**
@@ -162,7 +289,7 @@ class Player {
      */
     draw(ctx) {
         ctx.fillStyle = '#ff9100';
-        ctx.fillRect((this.position[0] + 0.25) * this.blockSize, (this.position[1] + 0.25) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
+        ctx.fillRect((this.position.x + 0.25) * this.blockSize, (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
     }
 
     /**
@@ -172,15 +299,15 @@ class Player {
      */
     keyDown(e) {
         if (e.keyCode === KEYS.A) {
-            this._direction = KEYS.A;
+            this.due = KEYS.A;
         } else if (e.keyCode === KEYS.S) {
-            this._direction = KEYS.S;
+            this.due = KEYS.S;
         } else if (e.keyCode === KEYS.D) {
-            this._direction = KEYS.D;
+            this.due = KEYS.D;
         } else if (e.keyCode === KEYS.W) {
-            this._direction = KEYS.W;
+            this.due = KEYS.W;
         } else if (k.keyCode === KEYS.N) {
-            this._direction = KEYS.N;
+            this.due = KEYS.N;
         }
         return true;
     }
@@ -241,7 +368,7 @@ class Pacman {
         this.ghosts = [];
         this.player = null;
         this.timer = null;
-        this.currentState = PLAYING_STATES.INITIALIZING;
+        this.currentState = PLAYING_STATES.PLAYING;
     }
 
     /**
@@ -328,13 +455,20 @@ class Pacman {
 
         this.player.draw(this.ctx);
 
+        this.player.move(this.ctx);
+
+        let isItem = this.map.isPlacedItem(this.player.position);
+        if (isItem > 0) {
+            this.player.addToScore(isItem);
+        }
+
         if (this.currentState === PLAYING_STATES.INITIALIZING) {
             // Game is currently being initialized
         } else if (this.currentState === PLAYING_STATES.WAITING) {
             // Game is in waiting state
         } else if (this.currentState === PLAYING_STATES.PLAYING) {
             // Game play is running
-            this.player.move(this.ctx);
+            // this.player.move(this.ctx);
             this.draw();
         } else if (this.currentState === PLAYING_STATES.COUNT_DOWN) {
             // Show the countdown for starting the game
@@ -405,21 +539,21 @@ const MAP_ARRAY = [
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], // Middle
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
-    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2], // Middle
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
+    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
+    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
     [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
     [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
