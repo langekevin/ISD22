@@ -255,6 +255,9 @@ class Player {
             newPosition = this.tryMoveIntoDirection(oldPosition);
         }
 
+        // Correct position if player moves out of the map
+        newPosition = this.getsOutOfMap(newPosition);
+
         this.position = newPosition;
         return {new: this.position, old: oldPosition}
     }
@@ -309,6 +312,20 @@ class Player {
                 newPosition = oldPosition;
             }
         }
+        return newPosition;
+    }
+
+    getsOutOfMap(newPosition) {
+        if (newPosition.asInteger(1) !== 15) {
+            return newPosition
+        }
+
+        if (newPosition.x >= 28.5 && this.direction === KEYS.D) {
+            newPosition.x = 1;
+        } else if (newPosition.x <= 1 && this.direction === KEYS.A) {
+            newPosition.x = 28.5;
+        }
+
         return newPosition;
     }
 
