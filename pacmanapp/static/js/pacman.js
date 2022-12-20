@@ -116,12 +116,12 @@ class Map {
      * @return {number} Value of the item that was removed. 0 if no item was removed
      */
     isPlacedItem(position) {
-        if (!Helpers.almostInteger(position.x) && Helpers.almostInteger(position.y)) {
+        if (!position.almostInteger(0) && position.almostInteger(1)) {
             return 0;
         }
 
-        let x = Math.round(position.x);
-        let y = Math.round(position.y);
+        let x = position.asInteger(0);
+        let y = position.asInteger(1);
         if (this.mapArray[y][x] === MAP_ELEMENTS.ITEM) {
             this.mapArray[y][x] = MAP_ELEMENTS.EMPTY;
             return MAP_ELEMENTS.ITEM;
@@ -157,21 +157,51 @@ class Position {
     set y(newY) {
         this._y = newY;
     }
-}
-
-/**
- * Class for static helper functions
- */
-class Helpers {
 
     /**
-     * Checks if two values are almost equal to the nearest integer
-     * @param{int} value Value that needs to be checked
-     * @return{boolean} True if the value is almost equal to an integer
+     * Checks if the position is on a square or not
+     * @return {boolean} True if position is on square
      */
-    static almostInteger(value){
+    isOnSquare() {
+        let x = Math.round(this._x);
+        let y = Math.round(this._y);
 
-        return Math.abs(Math.round(value) - value) < 0.0001;
+        if (Math.abs(x - this._x) < 0.0001 && Math.abs(y - this._y) < 0.0001) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Gets the position as a rounded integer value
+     * @param axis 0 for x-axis, 1 for y-axis
+     * @return {number} Position as integer
+     */
+    asInteger(axis = 0) {
+        switch (axis) {
+            case 0:
+                return Math.round(this._x);
+            case 1:
+                return Math.round(this._y);
+            default:
+                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.asInteger.name}`);
+        }
+    }
+
+    /**
+     * Checks if the position is almost an integer value
+     * @param axis 0 for x-axis, 1 for y-axis
+     * @return {boolean} True if position can be considered as an integer.
+     */
+    almostInteger(axis = 0) {
+        switch(axis) {
+            case 0:
+                return Math.abs(Math.round(this._x) - this._x) < 0.0001;
+            case 1:
+                return Math.abs(Math.round(this._y) - this._y) < 0.0001;
+            default:
+                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.almostInteger.name}`);
+        }
     }
 }
 
@@ -198,7 +228,7 @@ class Player {
      * @param{number} number
      */
     addToScore(number) {
-
+        this.score += number;
     }
 
     /**
@@ -216,46 +246,13 @@ class Player {
     move(map){
         let newPosition = null;
         let oldPosition = this.position;
-        let x = 0, y = 0;
 
         if (this.due && this.due !== this.direction) {
-            newPosition = this.getNextPosition(this.due);
-            if ((this.due === KEYS.A || this.due === KEYS.D) && Helpers.almostInteger(newPosition.y)) {
-                x = Math.round(newPosition.x);
-                y = Math.round(newPosition.y);
-                if (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0 || this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0){
-                    this.direction = this.due;
-                } else {
-                    newPosition = null;
-                }
-            } else if ((this.due === KEYS.W || this.due === KEYS.S) && Helpers.almostInteger(newPosition.x)) {
-                x = Math.round(newPosition.x);
-                y = Math.round(newPosition.y);
-                if (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0 || this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0) {
-                    this.direction = this.due;
-                } else {
-                    newPosition = null;
-                }
-            } else {
-                newPosition = null;
-            }
+            newPosition = this.tryChangeDirection();
         }
 
         if (newPosition === null) {
-            newPosition = this.getNextPosition(this.direction);
-            if (this.onSquare(oldPosition)){
-                let x = Math.round(oldPosition.x);
-                let y = Math.round(oldPosition.y);
-                if (this.direction === KEYS.A && MAP_ARRAY[y][x - 1] === 0) {
-                    newPosition = oldPosition;
-                } else if (this.direction === KEYS.D && MAP_ARRAY[y][x + 1] === 0) {
-                    newPosition = oldPosition;
-                } else if (this.direction === KEYS.W && MAP_ARRAY[y - 1][x] === 0) {
-                    newPosition = oldPosition;
-                } else if (this.direction === KEYS.S && MAP_ARRAY[y + 1][x] === 0) {
-                    newPosition = oldPosition;
-                }
-            }
+            newPosition = this.tryMoveIntoDirection(oldPosition);
         }
 
         this.position = newPosition;
@@ -263,12 +260,56 @@ class Player {
     }
 
     /**
-     * Checks if the player is currently on a square
-     * @param position Current Position of the player
-     * @return {boolean} True if the player is on a square
+     * Checks if the player can change the direction at the current location
+     * and sets the new direction if possible
+     * @return {Position} New position if the change in the new direction is possible
      */
-    onSquare(position){
-        return Helpers.almostInteger(position.x) && Helpers.almostInteger(position.y);
+    tryChangeDirection(){
+        let x = 0, y = 0;
+        let newPosition = this.getNextPosition(this.due);
+        if ((this.due === KEYS.A || this.due === KEYS.D) && newPosition.almostInteger(1)) {
+            x = newPosition.asInteger(0);
+            y = newPosition.asInteger(1);
+            if (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0 || this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0){
+                this.direction = this.due;
+            } else {
+                newPosition = null;
+            }
+        } else if ((this.due === KEYS.W || this.due === KEYS.S) && newPosition.almostInteger(0)) {
+            x = newPosition.asInteger(0);
+            y = newPosition.asInteger(1);
+            if (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0 || this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0) {
+                this.direction = this.due;
+            } else {
+                newPosition = null;
+            }
+        } else {
+            newPosition = null;
+        }
+        return newPosition;
+    }
+
+    /**
+     * Tries to move the player into the current direction
+     * @param{Position} oldPosition
+     * @returns{Position} New Position of the player
+     */
+    tryMoveIntoDirection(oldPosition){
+        let newPosition = this.getNextPosition(this.direction);
+        if (oldPosition.isOnSquare()){
+            let x = oldPosition.asInteger(0);
+            let y = oldPosition.asInteger(1);
+            if (this.direction === KEYS.A && MAP_ARRAY[y][x - 1] === 0) {
+                newPosition = oldPosition;
+            } else if (this.direction === KEYS.D && MAP_ARRAY[y][x + 1] === 0) {
+                newPosition = oldPosition;
+            } else if (this.direction === KEYS.W && MAP_ARRAY[y - 1][x] === 0) {
+                newPosition = oldPosition;
+            } else if (this.direction === KEYS.S && MAP_ARRAY[y + 1][x] === 0) {
+                newPosition = oldPosition;
+            }
+        }
+        return newPosition;
     }
 
     /**
@@ -278,9 +319,9 @@ class Player {
      */
     getNextPosition(direction) {
         return new Position(
-                this.position.x + ((direction === KEYS.A && -0.1) || (direction === KEYS.D && 0.1) || 0),
-                this.position.y + ((direction === KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
-            )
+            this.position.x + ((direction === KEYS.A && -0.1) || (direction === KEYS.D && 0.1) || 0),
+            this.position.y + ((direction === KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+        );
     }
 
     /**
