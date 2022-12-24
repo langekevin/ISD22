@@ -2,6 +2,26 @@
 
 {% block content %}
 
-    <h1>Profile</h1>
+    {% load static %}
+
+    <div class="profile-background">
+    <div class="profile-wrapper">
+        <div class="profile_card profile_text">
+            <img src="https://avatarfiles.alphacoders.com/103/thumb-103261.gif" class="avatar">
+            <div class="profile_info">
+                <h1 class="name_score" id="username" contenteditable="true">user_name</h1>
+                <h1 class="name_score">Maximum score: 0</h1>
+            </div>
+            <div class="scores">
+                <h1 class="top frame">Top 3 players:</h1>
+                <h1 class="top">user1</h1>
+                <h1 class="top">user2</h1>
+                <h1 class="top">user3</h1>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="{% static 'js/profile.js' %}"></script>
 
 {% endblock %}
