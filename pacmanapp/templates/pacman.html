@@ -1,7 +1,12 @@
-{% extends 'base.html' %}
-
-{% block content %}
-
-    <h1>Play pacman</h1>
+{% extends 'base.html' %} {% block content %}
+{% load static %}
+    <div class="background">
+        <div class="container h100 align-center">
+            <div id="pacman-container" class="pacman">
+                <canvas class="canvas" id="pacman-canvas"> </canvas>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/pacman.js' %}"></script>
 
 {% endblock %}
