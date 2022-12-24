@@ -1,7 +1,60 @@
 {% extends 'base.html' %}
-
 {% block content %}
 
-    <h1>Here could be Pacman!</h1>
-    <h3>jk, just the login and landing page</h3>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.2.1/css/all.css" />
+
+<div class="login-background">
+   <div class="login-wrapper">
+      <div class="login-box">
+          <h1>Login</h1>
+
+          <form method="post" action="{% url 'login' %}">
+              {% csrf_token %}
+              <div class="textbox">
+                   <i class="fa-solid fa-user"></i>
+                   <input id="{{ form.username.id_for_label }}"
+                          name="{{ form.username.name }}"
+                          type="text"
+                          class="input-glf"
+                          placeholder="Username"
+                          {% if form.username.value != None %}value="{{ form.username.value|stringformat:'s' }}"{% endif %}
+                    />
+              </div>
+               <div class="textbox">
+                   <i class="fa-solid fa-lock"></i>
+                   <input
+                           id="{{ form.password.if_for_label }}"
+                           name="{{ form.password.name}}"
+                           type="password"
+                           class="input-glf"
+                           placeholder="Password"
+                           {% if form.password.value != None %}value="{{ form.password.value|stringformat:'s' }}"{% endif %}
+                   />
+               </div>
+
+<!--              <form method="post" action="{% url 'login' %}">-->
+<!--  {% csrf_token %}-->
+<!--  {{ form.as_p }}-->
+<!--  <input type="submit" value="Log in">-->
+<!--</form>-->
+
+<!--              <form method="post" action="{% url 'login' %}">-->
+<!--  {% csrf_token %}-->
+<!--  {% for field in form %}-->
+<!--    <p>{{ field.label_tag }} {{ field }}</p>-->
+<!--  {% endfor %}-->
+<!--  <input type="submit" value="Log in">-->
+<!--</form>-->
+
+
+
+             <button id="password" class="btn-glf" type="submit" name="submit">Sign in</button>
+
+           </form>
+          <button class="btn-glf">Don`t have an account?</button>
+      </div>
+   </div>
+</div>
+
 {% endblock %}

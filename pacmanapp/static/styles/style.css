@@ -1,4 +1,208 @@
 /* Put your custom styles here */
+
+/* Navbar */
+.btn-color {
+    color: yellow;
+    outline: none;
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+}
+.btn-color:hover {
+    color: blue;
+}
+ul.dropdown-menu {
+    background-color: black;
+    border-color: yellow;
+}
+a.dropdown-item {
+    color: yellow;
+    font-size: 20px;
+}
+a.dropdown-item:hover {
+    background-color: transparent;
+    color: blue;
+}
+
+/* Profile */
+.profile-background {
+    background: url("https://steamuserimages-a.akamaihd.net/ugc/949579868316400106/667E62BCDC4F0077104EAA826A5D825CDEF5B0C8/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: calc(100vh - 3.5rem);
+    width: 100vw;
+    position: absolute;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+@import "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css";
+
+.login-background{
+    background: url(../images/3db802049389497c94927cb6dd7d6edf.jpeg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: calc(100vh - 3.5rem);
+    width: 100vw;
+    position: absolute;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.profile_card {
+    background: rgba(0, 39, 196, 0.6);
+    width: 100%;
+    border-radius: 20px;
+    border-style: solid;
+    border-color: yellow;
+    padding: 40px;
+}
+.profile-wrapper {
+    display: grid;
+    align-content: center;
+    margin: auto;
+    width: 30%;
+    min-width: 400px;
+    height: 100%;
+}
+
+.login-wrapper {
+    display: grid;
+    align-content: center;
+    margin: auto;
+    width: 30%;
+    min-width: 400px;
+    height: 100%;
+}
+
+@media screen and (max-height: 800px) {
+    .profile-wrapper {
+        margin-top: 4rem;
+    }
+}
+.profile_text {
+    text-align: center;
+}
+.profile_info {
+    padding-top: 2rem;
+}
+.scores {
+    padding-top: 2rem;
+}
+.name_score:hover {
+    color: rgb(255, 21, 21);
+}
+.name_score {
+    font-size: 30px;
+    color: yellow;
+}
+[contenteditable] {
+    outline: 0px solid transparent;
+}
+.top {
+    position: relative;
+    font-size: 20px;
+    color: yellow;
+    padding: 7px 50px;
+}
+.frame {
+    border-style: solid;
+    border-color: yellow;
+}
+.avatar {
+    height: 130px;
+    width: 130px;
+    position: relative;
+    align-content: center;
+    border-style: solid;
+    border-color: yellow;
+    border-radius: 50%;
+    padding: 10px;
+    opacity: 1;
+}
+.avatar:hover {
+    margin: 0px;
+    padding: 0px;
+    border-style: none;
+    transform: scale(1.3);
+}
+
+.pacmanlogo {
+    color: yellow;
+    text-decoration: none;
+}
+
+@media screen and (max-height: 800px) {
+    .login-wrapper {
+        margin-top: 4rem;
+    }
+}
+
+.login-box{
+    background: rgba(0, 39, 196, 0.6);
+    width: 100%;
+    border-radius: 20px;
+    border-style: solid;
+    border-color: yellow;
+    padding: 40px;
+}
+
+.login-box h1{
+    float: left;
+    font-size: 50px;
+    border-bottom: 6px solid yellow;
+    margin-bottom: 25px;
+    padding: 10px 0;
+    color: yellow;
+}
+
+.textbox{
+    display: inline-block;
+    width: 100%;
+    font-size: 20px;
+    padding: 8px 0;
+    border-bottom: 1px solid yellow;
+}
+
+.textbox i {
+    color: yellow;
+    width: 6%;
+}
+
+.input-glf {
+    border:none;
+    border-bottom: 1px solid yellow;
+    padding: 5px 10px;
+    outline: none;
+    width: 92%;
+}
+
+.btn-glf{
+    font-weight: 500;
+    width: 100%;
+    background-color: transparent;
+    border: 2px solid yellow;
+    color: yellow;
+    padding: 5px;
+    font-size: 18px;
+    margin: 12px 0
+}
+
+.btn-glf:hover {
+    background-color: yellow;
+    color: black;
+}
+
+.input-glf2 {
+    border:none;
+    border-bottom: 1px solid yellow;
+    padding: 5px 10px;
+    outline: none;
+    width: 100%;
+}
+
 body {
     height: 100%;
 }
