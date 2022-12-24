@@ -2,7 +2,7 @@
 @import "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css";
 
 .login-background{
-    background: url(3db802049389497c94927cb6dd7d6edf.jpeg);
+    background: url(../images/3db802049389497c94927cb6dd7d6edf.jpeg);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -13,7 +13,7 @@
     overflow-y: auto;
 }
 
-.wrapper {
+.login-wrapper {
     display: grid;
     align-content: center;
     margin: auto;
@@ -23,7 +23,7 @@
 }
 
 @media screen and (max-height: 800px) {
-    .wrapper {
+    .login-wrapper {
         margin-top: 4rem;
     }
 }
