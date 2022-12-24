@@ -25,7 +25,7 @@ a.dropdown-item:hover {
 }
 
 /* Profile */
-.profile {
+.profile-background {
     background: url("https://steamuserimages-a.akamaihd.net/ugc/949579868316400106/667E62BCDC4F0077104EAA826A5D825CDEF5B0C8/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false");
     background-position: center;
     background-repeat: no-repeat;
@@ -44,7 +44,7 @@ a.dropdown-item:hover {
     border-color: yellow;
     padding: 40px;
 }
-.wrapper {
+.profile-wrapper {
     display: grid;
     align-content: center;
     margin: auto;
@@ -53,7 +53,7 @@ a.dropdown-item:hover {
     height: 100%;
 }
 @media screen and (max-height: 800px) {
-    .wrapper {
+    .profile-wrapper {
         margin-top: 4rem;
     }
 }
