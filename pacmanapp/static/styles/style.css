@@ -103,3 +103,9 @@ a.dropdown-item:hover {
     border-style: none;
     transform: scale(1.3);
 }
+
+.pacmanlogo {
+    color: yellow;
+    text-decoration: none;
+
+}
