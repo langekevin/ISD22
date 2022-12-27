@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
+
 
 
 def index(request):
@@ -39,12 +41,37 @@ def pacman(request):
         print(username)
     return render(request, 'pacman.html', {})
 
-def profile(requeest):
+def profile(request):
     """
     Returns the profile.html
     """
     return render(requeest, 'profile.html', {})
 
 
+
+
+
+from django import forms
+
+class RegistrationForm(forms.Form):
+    first_name = forms.CharField(max_length=100)
+    last_name = forms.CharField(max_length=100)
+    username = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput)
+    re_password = forms.CharField(widget=forms.PasswordInput)
 def registration(request):
-    return render(request, 'registration.html', {})
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            messages.success(request, ("Registration successfull"))
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+

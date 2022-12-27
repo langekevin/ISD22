@@ -20,3 +20,12 @@ urlpatterns = [
     path("", include('pacmanapp.urls')),
     path("admin/", admin.site.urls),
 ]
+
+from django.urls import path
+from myapp import views
+
+urlpatterns = [
+    path('register/', views.register, name='register'),
+]
+
+
