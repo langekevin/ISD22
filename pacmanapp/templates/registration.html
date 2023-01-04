@@ -6,28 +6,47 @@
    <div class="wrapper">
       <div class="login-box">
           <h1>Registration</h1>
-          <form>
-              <div class="textbox">
-                   <input class="input-glf2" type="text" placeholder="First name" />
-              </div>
-               <div class="textbox">
-                   <input class="input-glf2" type="text" placeholder="Last name" />
-               </div>
+          <form action="{% url 'registration' %}" method="post">
+              {% csrf_token %}
                 <div class="textbox">
-                   <input class="input-glf2" type="text" placeholder="Username" />
+                    <input id="{{ form.username.id_for_label }}"
+                          name="{{ form.username.name }}"
+                          type="text"
+                          class="input-glf2"
+                          placeholder="Username"
+                          {% if form.username.value != None %}value="{{ form.username.value|stringformat:'s' }}"{% endif %}
+                    />
                </div>
               <div class="textbox">
-                   <input class="input-glf2" type="text" placeholder="E-mail" />
+                  <input id="{{ form.email.id_for_label }}"
+                          name="{{ form.email.name }}"
+                          type="text"
+                          class="input-glf2"
+                          placeholder="E-Mail"
+                          {% if form.email.value != None %}value="{{ form.email.value|stringformat:'s' }}"{% endif %}
+                    />
               </div>
                <div class="textbox">
-                   <input class="input-glf2" type="password" placeholder="Password"/>
+                   <input id="{{ form.password1.id_for_label }}"
+                          name="{{ form.password1.name }}"
+                          type="password"
+                          class="input-glf2"
+                          placeholder="Password"
+                          {% if form.password1.value != None %}value="{{ form.password1.value|stringformat:'s' }}"{% endif %}
+                    />
               </div>
                <div class="textbox">
-                   <input class="input-glf2" type="password" placeholder="Re-type Password"/>
+                   <input id="{{ form.password2.id_for_label }}"
+                          name="{{ form.password2.name }}"
+                          type="password"
+                          class="input-glf2"
+                          placeholder="Confirm password"
+                          {% if form.password2.value != None %}value="{{ form.password2.value|stringformat:'s' }}"{% endif %}
+                    />
               </div>
              <button class="btn-glf" type="submit" name="submit">Register</button>
            </form>
-          <button class="btn-glf">Sign in</button>
+          <a href="{% url 'login' %}" class="btn-glf">Sign in</a>
       </div>
    </div>
 </div>

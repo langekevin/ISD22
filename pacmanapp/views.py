@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
-
+from django.contrib.auth.forms import User
+from .forms import NewUserForm
 
 
 def index(request):
@@ -35,43 +36,26 @@ def pacman(request):
     Returns the pacman.html
     """
     if request.user.is_authenticated:
-        username = request.user.username
-        pk = request.user.pk
-        print(pk)
-        print(username)
-    return render(request, 'pacman.html', {})
+        return render(request, 'pacman.html', {})
+    return redirect('login')
+
 
 def profile(request):
     """
     Returns the profile.html
     """
-    return render(requeest, 'profile.html', {})
+    return render(request, 'profile.html', {})
 
 
-
-
-
-from django import forms
-
-class RegistrationForm(forms.Form):
-    first_name = forms.CharField(max_length=100)
-    last_name = forms.CharField(max_length=100)
-    username = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
-    re_password = forms.CharField(widget=forms.PasswordInput)
 def registration(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            messages.success(request, ("Registration successfull"))
-            return redirect('login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'register.html', {'form': form})
+        form = NewUserForm(request.POST)
+        if not form.is_valid():
+            return render(request, 'registration.html', {'form': form, 'errors': form.errors})
 
+        user = form.save()
+        login(request, user)
+        return redirect('pacman')
+
+    form = NewUserForm()
+    return render(request, 'registration.html', {'form': form})
