@@ -1,15 +1,15 @@
 /**
  * Event listener for the canvas for pacman that creates the game
  */
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     const canvas = document.querySelector("#pacman-canvas");
     const ctx = canvas.getContext("2d");
 
     // Resizing
     const container = document.querySelector("#pacman-container");
     let size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 30;
-    canvas.setAttribute("width", (size * 30) + "px");
-    canvas.setAttribute("height", (size * 33) + 75 + "px");
+    canvas.setAttribute("width", size * 30 + "px");
+    canvas.setAttribute("height", size * 33 + 75 + "px");
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
@@ -34,7 +34,7 @@ class Map {
     }
 
     drawPills(ctx) {
-        ctx.strokeStyle = '#0033da';
+        ctx.strokeStyle = "#0033da";
         ctx.lineWidth = 3;
 
         for (let i = 0; i < LINES.length; i++) {
@@ -44,9 +44,15 @@ class Map {
             for (let j = 0; j < line.length; j++) {
                 let move = line[j];
                 if (move.move) {
-                    ctx.moveTo(move.move[0] * this.blockSize + CANVAS_OFFSET_X, move.move[1] * this.blockSize + CANVAS_OFFSET_Y);
+                    ctx.moveTo(
+                        move.move[0] * this.blockSize + CANVAS_OFFSET_X,
+                        move.move[1] * this.blockSize + CANVAS_OFFSET_Y
+                    );
                 } else if (move.line) {
-                    ctx.lineTo(move.line[0] * this.blockSize + CANVAS_OFFSET_X, move.line[1] * this.blockSize + CANVAS_OFFSET_Y);
+                    ctx.lineTo(
+                        move.line[0] * this.blockSize + CANVAS_OFFSET_X,
+                        move.line[1] * this.blockSize + CANVAS_OFFSET_Y
+                    );
                 } else if (move.curve) {
                     ctx.quadraticCurveTo(
                         move.curve[0] * this.blockSize + CANVAS_OFFSET_X,
@@ -59,11 +65,17 @@ class Map {
             ctx.stroke();
         }
 
-        ctx.strokeStyle = 'rgba(80,80,80,0.79)';
+        ctx.strokeStyle = "rgba(80,80,80,0.79)";
         ctx.lineWidth = 12;
         ctx.beginPath();
-        ctx.moveTo(13.55 * this.blockSize, 13.75 * this.blockSize + CANVAS_OFFSET_Y);
-        ctx.lineTo(16.45 * this.blockSize, 13.75 * this.blockSize + CANVAS_OFFSET_Y);
+        ctx.moveTo(
+            13.55 * this.blockSize,
+            13.75 * this.blockSize + CANVAS_OFFSET_Y
+        );
+        ctx.lineTo(
+            16.45 * this.blockSize,
+            13.75 * this.blockSize + CANVAS_OFFSET_Y
+        );
         ctx.stroke();
 
         this.drawPoints(ctx);
@@ -78,11 +90,56 @@ class Map {
         for (let y = 0; y < this.mapArray.length; y++) {
             for (let x = 0; x < this.mapArray[y].length; x++) {
                 if (this.mapArray[y][x] === MAP_ELEMENTS.ITEM) {
-                    ctx.drawImage(this.pizzaImage, (x + 0.3) * this.blockSize, (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
+                    ctx.drawImage(
+                        this.pizzaImage,
+                        (x + 0.3) * this.blockSize,
+                        (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y,
+                        10,
+                        10
+                    );
                 } else if (this.mapArray[y][x] === MAP_ELEMENTS.BIG_ITEM) {
-                    ctx.drawImage(this.cakeImage, (x + 0.1) * this.blockSize, y * this.blockSize + CANVAS_OFFSET_Y, 16, 16);
+                    ctx.drawImage(
+                        this.cakeImage,
+                        (x + 0.1) * this.blockSize,
+                        y * this.blockSize + CANVAS_OFFSET_Y,
+                        16,
+                        16
+                    );
                 }
             }
+        }
+    }
+
+    /**
+     * Draws the description and the score on the map
+     * @param {object} ctx Canvas object of the map
+     * @param {number} score Current score of the player
+     * @param {number} highScore Highscore of the player
+     */
+    drawDescription(ctx, score, highScore = 10000) {
+        ctx.font = "bold 24px Courier New";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 5);
+        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 5);
+        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 5);
+        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 5);
+    }
+
+    /**
+     * Draws the remaining lives on the map
+     * @param {object} ctx Canvas object
+     * @param {number} nbLifes Number of remaining lives
+     */
+    drawLifes(ctx, nbLifes = 3) {
+        ctx.fillStyle = "#FFFF00";
+        for (let i = 0; i < nbLifes; i++) {
+            ctx.fillRect(
+                2 * (this.blockSize + this.blockSize * i),
+                35 * this.blockSize,
+                10,
+                10
+            );
         }
     }
 
@@ -98,7 +155,7 @@ class Map {
         ctx.clearRect(0, 0, width, height);
 
         // Create the new background
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, width, height);
     }
 
@@ -184,7 +241,9 @@ class Position {
             case 1:
                 return Math.round(this._y);
             default:
-                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.asInteger.name}`);
+                throw new Error(
+                    `The axis ${axis} does not exist in ${Position.prototype.asInteger.name}`
+                );
         }
     }
 
@@ -194,13 +253,15 @@ class Position {
      * @return {boolean} True if position can be considered as an integer.
      */
     almostInteger(axis = 0) {
-        switch(axis) {
+        switch (axis) {
             case 0:
                 return Math.abs(Math.round(this._x) - this._x) < 0.0001;
             case 1:
                 return Math.abs(Math.round(this._y) - this._y) < 0.0001;
             default:
-                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.almostInteger.name}`);
+                throw new Error(
+                    `The axis ${axis} does not exist in ${Position.prototype.almostInteger.name}`
+                );
         }
     }
 }
@@ -234,7 +295,7 @@ class Player {
     /**
      * Subtracts a life from the lives of the player
      */
-    died(){
+    died() {
         this.lives -= 1;
     }
 
@@ -243,7 +304,7 @@ class Player {
      * @param{Map} map Instance of the class Map
      * @returns{{new: Position, old: Position}}
      */
-    move(map){
+    move(map) {
         let newPosition = null;
         let oldPosition = this.position;
 
@@ -259,7 +320,7 @@ class Player {
         newPosition = this.getsOutOfMap(newPosition);
 
         this.position = newPosition;
-        return {new: this.position, old: oldPosition}
+        return { new: this.position, old: oldPosition };
     }
 
     /**
@@ -267,21 +328,34 @@ class Player {
      * and sets the new direction if possible
      * @return {Position} New position if the change in the new direction is possible
      */
-    tryChangeDirection(){
-        let x = 0, y = 0;
+    tryChangeDirection() {
+        let x = 0,
+            y = 0;
         let newPosition = this.getNextPosition(this.due);
-        if ((this.due === KEYS.A || this.due === KEYS.D) && newPosition.almostInteger(1)) {
+        if (
+            (this.due === KEYS.A || this.due === KEYS.D) &&
+            newPosition.almostInteger(1)
+        ) {
             x = newPosition.asInteger(0);
             y = newPosition.asInteger(1);
-            if (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0 || this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0){
+            if (
+                (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0) ||
+                (this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0)
+            ) {
                 this.direction = this.due;
             } else {
                 newPosition = null;
             }
-        } else if ((this.due === KEYS.W || this.due === KEYS.S) && newPosition.almostInteger(0)) {
+        } else if (
+            (this.due === KEYS.W || this.due === KEYS.S) &&
+            newPosition.almostInteger(0)
+        ) {
             x = newPosition.asInteger(0);
             y = newPosition.asInteger(1);
-            if (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0 || this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0) {
+            if (
+                (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0) ||
+                (this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0)
+            ) {
                 this.direction = this.due;
             } else {
                 newPosition = null;
@@ -297,9 +371,9 @@ class Player {
      * @param{Position} oldPosition
      * @returns{Position} New Position of the player
      */
-    tryMoveIntoDirection(oldPosition){
+    tryMoveIntoDirection(oldPosition) {
         let newPosition = this.getNextPosition(this.direction);
-        if (oldPosition.isOnSquare()){
+        if (oldPosition.isOnSquare()) {
             let x = oldPosition.asInteger(0);
             let y = oldPosition.asInteger(1);
             if (this.direction === KEYS.A && MAP_ARRAY[y][x - 1] === 0) {
@@ -317,7 +391,7 @@ class Player {
 
     getsOutOfMap(newPosition) {
         if (newPosition.asInteger(1) !== 15) {
-            return newPosition
+            return newPosition;
         }
 
         if (newPosition.x >= 28.5 && this.direction === KEYS.D) {
@@ -336,8 +410,14 @@ class Player {
      */
     getNextPosition(direction) {
         return new Position(
-            this.position.x + ((direction === KEYS.A && -0.1) || (direction === KEYS.D && 0.1) || 0),
-            this.position.y + ((direction === KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+            this.position.x +
+                ((direction === KEYS.A && -0.1) ||
+                    (direction === KEYS.D && 0.1) ||
+                    0),
+            this.position.y +
+                ((direction === KEYS.W && -0.1) ||
+                    (direction === KEYS.S && 0.1) ||
+                    0)
         );
     }
 
@@ -346,8 +426,13 @@ class Player {
      * @param{object} ctx
      */
     draw(ctx) {
-        ctx.fillStyle = '#ff9100';
-        ctx.fillRect((this.position.x + 0.25) * this.blockSize, (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
+        ctx.fillStyle = "#ff9100";
+        ctx.fillRect(
+            (this.position.x + 0.25) * this.blockSize,
+            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
+            10,
+            10
+        );
     }
 
     /**
@@ -381,7 +466,7 @@ class Ghost {
      */
     constructor(color) {
         /* Variables for the ghost class */
-        this.color = color
+        this.color = color;
         this.isEatable = false;
     }
 
@@ -389,12 +474,12 @@ class Ghost {
      * Available colors of the ghosts
      * @type {string[]}
      */
-    static GHOST_SPECS = ['#00FFDE', '#FF0000', '#FFB8DE', '#FFB847'];
+    static GHOST_SPECS = ["#00FFDE", "#FF0000", "#FFB8DE", "#FFB847"];
 
     /**
      * Toggles the is eatable state of the ghost.
      */
-    toggleEatable(){
+    toggleEatable() {
         this.isEatable = !this.isEatable;
     }
 }
@@ -455,7 +540,10 @@ class Pacman {
     keyDown(e) {
         if (e.keyCode === KEYS.N) {
             // Start new game
-        } else if (e.keyCode === KEYS.P && this.currentState === PLAYING_STATES.PAUSE) {
+        } else if (
+            e.keyCode === KEYS.P &&
+            this.currentState === PLAYING_STATES.PAUSE
+        ) {
             // Resume to game
         } else if (e.keyCode === KEYS.P) {
             // Set game to pause
@@ -486,14 +574,22 @@ class Pacman {
 
         // Start the main loop
         // document.addEventListener('keydown', this.keyDown, true);
-        document.addEventListener('keydown', (e) => {
-            this.keyDown(e);
-        }, true);
+        document.addEventListener(
+            "keydown",
+            (e) => {
+                this.keyDown(e);
+            },
+            true
+        );
 
         // document.addEventListener('keypress', this.keyPress, true);
-        document.addEventListener('keypress', (e) => {
-            this.keyPress(e);
-        }, true);
+        document.addEventListener(
+            "keypress",
+            (e) => {
+                this.keyPress(e);
+            },
+            true
+        );
 
         this.timer = window.setInterval(() => {
             this.mainLoop();
@@ -505,11 +601,13 @@ class Pacman {
      * canvas of the application.
      * This method executes every X seconds
      */
-    mainLoop(){
+    mainLoop() {
         this.map.resetCanvas(this.ctx, this.canvas);
 
         // Draw the pills
         this.map.drawPills(this.ctx);
+        this.map.drawDescription(this.ctx, this.player.score);
+        this.map.drawLifes(this.ctx, this.player.lives);
 
         this.player.draw(this.ctx);
 
@@ -538,11 +636,8 @@ class Pacman {
      */
     draw() {
         // Draw the ghosts
-
         // Draw the player
-
         // Check if the player got new points
-
         // Check if the player somehow collided with a ghost
     }
 }
@@ -562,8 +657,8 @@ const PLAYING_STATES = {
     GAME_OVER: 4,
     COUNT_DOWN: 5,
     INITIALIZING: 6,
-    PAUSE: 7
-}
+    PAUSE: 7,
+};
 
 const KEYS = {
     N: 0,
@@ -571,56 +666,155 @@ const KEYS = {
     S: 83,
     A: 65,
     W: 87,
-    D: 68
-}
+    D: 68,
+};
 
 const MAP_ELEMENTS = {
     WALL: 0,
     ITEM: 1,
     EMPTY: 2,
     NOT_ALLOWED: 3,
-    BIG_ITEM: 4
-}
+    BIG_ITEM: 4,
+};
 
 /**
  * Array represents the placement of points the user can collect.
  * @type {number[][]}
  */
 const MAP_ARRAY = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 4, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2], // Middle
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 0, 0],
-    [0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 4, 0, 0],
-    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-]
+    [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 4, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 4, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0,
+        0, 2, 2, 2, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 2, 2, 1, 2,
+        2, 2, 2, 2, 2, 2,
+    ], // Middle
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 3, 3, 3, 3, 3, 3, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 1, 0,
+        0, 2, 2, 2, 0, 0,
+    ],
+    [
+        0, 0, 2, 2, 2, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 4, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 4, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
+        0, 1, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 0,
+    ],
+    [
+        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+    [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0,
+    ],
+];
 
 const LINES = [
     [
@@ -632,7 +826,7 @@ const LINES = [
         { line: [4.0, 5.5] },
         { curve: [3.5, 5.5, 3.5, 5.0] },
         { line: [3.5, 4.0] },
-        { curve: [3.5, 3.5, 4.0, 3.5] }
+        { curve: [3.5, 3.5, 4.0, 3.5] },
     ],
     [
         { move: [9.0, 3.5] },
@@ -643,7 +837,7 @@ const LINES = [
         { line: [9.0, 5.5] },
         { curve: [8.5, 5.5, 8.5, 5.0] },
         { line: [8.5, 4.0] },
-        { curve: [8.5, 3.5, 9.0, 3.5] }
+        { curve: [8.5, 3.5, 9.0, 3.5] },
     ],
     [
         { move: [4.0, 7.5] },
@@ -654,7 +848,7 @@ const LINES = [
         { line: [4.0, 8.5] },
         { curve: [3.5, 8.5, 3.5, 8.0] },
         { line: [3.5, 8.0] },
-        { curve: [3.5, 7.5, 4.0, 7.5] }
+        { curve: [3.5, 7.5, 4.0, 7.5] },
     ],
     [
         { move: [18.0, 3.5] },
@@ -665,7 +859,7 @@ const LINES = [
         { line: [18.0, 5.5] },
         { curve: [17.5, 5.5, 17.5, 5.0] },
         { line: [17.5, 4.0] },
-        { curve: [17.5, 3.5, 18.0, 3.5] }
+        { curve: [17.5, 3.5, 18.0, 3.5] },
     ],
     [
         { move: [24.0, 3.5] },
@@ -676,7 +870,7 @@ const LINES = [
         { line: [24.0, 5.5] },
         { curve: [23.5, 5.5, 23.5, 5.0] },
         { line: [23.5, 4.0] },
-        { curve: [23.5, 3.5, 24.0, 3.5] }
+        { curve: [23.5, 3.5, 24.0, 3.5] },
     ],
     [
         { move: [24.0, 7.5] },
@@ -687,7 +881,7 @@ const LINES = [
         { line: [24.0, 8.5] },
         { curve: [23.5, 8.5, 23.5, 8.0] },
         { line: [23.5, 8.0] },
-        { curve: [23.5, 7.5, 24.0, 7.5] }
+        { curve: [23.5, 7.5, 24.0, 7.5] },
     ],
     [
         { move: [9.0, 7.5] },
@@ -706,7 +900,7 @@ const LINES = [
         { line: [9.0, 14.5] },
         { curve: [8.5, 14.5, 8.5, 14.0] },
         { line: [8.5, 8.0] },
-        { curve: [8.5, 7.5, 9.0, 7.5] }
+        { curve: [8.5, 7.5, 9.0, 7.5] },
     ],
     [
         { move: [12.0, 7.5] },
@@ -725,7 +919,7 @@ const LINES = [
         { line: [12.0, 8.5] },
         { curve: [11.5, 8.5, 11.5, 8.0] },
         { line: [11.5, 8.0] },
-        { curve: [11.5, 7.5, 12.0, 7.5] }
+        { curve: [11.5, 7.5, 12.0, 7.5] },
     ],
     [
         { move: [18.0, 10.5] },
@@ -744,7 +938,7 @@ const LINES = [
         { line: [18.0, 11.5] },
         { curve: [17.5, 11.5, 17.5, 11.0] },
         { line: [17.5, 11.0] },
-        { curve: [17.5, 10.5, 18.0, 10.5] }
+        { curve: [17.5, 10.5, 18.0, 10.5] },
     ],
     [
         { move: [4.0, 22.5] },
@@ -759,7 +953,7 @@ const LINES = [
         { line: [4.0, 23.5] },
         { curve: [3.5, 23.5, 3.5, 23.0] },
         { line: [3.5, 23.0] },
-        { curve: [3.5, 22.5, 4.0, 22.5] }
+        { curve: [3.5, 22.5, 4.0, 22.5] },
     ],
     [
         { move: [9.0, 16.5] },
@@ -770,7 +964,7 @@ const LINES = [
         { line: [9.0, 20.5] },
         { curve: [8.5, 20.5, 8.5, 20.0] },
         { line: [8.5, 17.0] },
-        { curve: [8.5, 16.5, 9.0, 16.5] }
+        { curve: [8.5, 16.5, 9.0, 16.5] },
     ],
     [
         { move: [9.0, 22.5] },
@@ -781,7 +975,7 @@ const LINES = [
         { line: [9.0, 23.5] },
         { curve: [8.5, 23.5, 8.5, 23.0] },
         { line: [8.5, 23.0] },
-        { curve: [8.5, 22.5, 9.0, 22.5] }
+        { curve: [8.5, 22.5, 9.0, 22.5] },
     ],
     [
         { move: [4.0, 28.5] },
@@ -800,7 +994,7 @@ const LINES = [
         { line: [4.0, 29.5] },
         { curve: [3.5, 29.5, 3.5, 29.0] },
         { line: [3.5, 29.0] },
-        { curve: [3.5, 28.5, 4.0, 28.5] }
+        { curve: [3.5, 28.5, 4.0, 28.5] },
     ],
     [
         { move: [12.0, 19.5] },
@@ -819,7 +1013,7 @@ const LINES = [
         { line: [12.0, 20.5] },
         { curve: [11.5, 20.5, 11.5, 20.0] },
         { line: [11.5, 20.0] },
-        { curve: [11.5, 19.5, 12.0, 19.5] }
+        { curve: [11.5, 19.5, 12.0, 19.5] },
     ],
     [
         { move: [12.0, 25.5] },
@@ -838,7 +1032,7 @@ const LINES = [
         { line: [12.0, 26.5] },
         { curve: [11.5, 26.5, 11.5, 26.0] },
         { line: [11.5, 26.0] },
-        { curve: [11.5, 25.5, 12.0, 25.5] }
+        { curve: [11.5, 25.5, 12.0, 25.5] },
     ],
     [
         { move: [18.0, 22.5] },
@@ -849,7 +1043,7 @@ const LINES = [
         { line: [18.0, 23.5] },
         { curve: [17.5, 23.5, 17.5, 23.0] },
         { line: [17.5, 23.0] },
-        { curve: [17.5, 22.5, 18.0, 22.5] }
+        { curve: [17.5, 22.5, 18.0, 22.5] },
     ],
     [
         { move: [24.0, 22.5] },
@@ -864,7 +1058,7 @@ const LINES = [
         { line: [24.0, 26.5] },
         { curve: [23.5, 26.5, 23.5, 26.0] },
         { line: [23.5, 23.0] },
-        { curve: [23.5, 22.5, 24.0, 22.5] }
+        { curve: [23.5, 22.5, 24.0, 22.5] },
     ],
     [
         { move: [21.0, 16.5] },
@@ -875,7 +1069,7 @@ const LINES = [
         { line: [21.0, 20.5] },
         { curve: [20.5, 20.5, 20.5, 20.0] },
         { line: [20.5, 17.0] },
-        { curve: [20.5, 16.5, 21.0, 16.5] }
+        { curve: [20.5, 16.5, 21.0, 16.5] },
     ],
     [
         { move: [18.0, 28.5] },
@@ -894,7 +1088,7 @@ const LINES = [
         { line: [18.0, 29.5] },
         { curve: [17.5, 29.5, 17.5, 29.0] },
         { line: [17.5, 29.0] },
-        { curve: [17.5, 28.5, 18.0, 28.5] }
+        { curve: [17.5, 28.5, 18.0, 28.5] },
     ],
     [
         { move: [12.0, 13.5] },
@@ -917,7 +1111,7 @@ const LINES = [
         { line: [12.0, 17.5] },
         { curve: [11.5, 17.5, 11.5, 17.0] },
         { line: [11.5, 14.0] },
-        { curve: [11.5, 13.5, 12.0, 13.5] }
+        { curve: [11.5, 13.5, 12.0, 13.5] },
     ],
     [
         { move: [1.0, 16.5] },
@@ -953,7 +1147,7 @@ const LINES = [
         { curve: [23.5, 20.5, 23.5, 20.0] },
         { line: [23.5, 17.0] },
         { curve: [23.5, 16.5, 24.0, 16.5] },
-        { line: [29, 16.5] }
+        { line: [29, 16.5] },
     ],
     [
         { move: [1.0, 17.0] },
@@ -1020,7 +1214,6 @@ const LINES = [
         { curve: [23.5, 10.5, 23.5, 11.0] },
         { line: [23.5, 14.0] },
         { curve: [23.5, 14.5, 24.0, 14.5] },
-        { line: [29.0, 14.5] }
-    ]
-]
-
+        { line: [29.0, 14.5] },
+    ],
+];
