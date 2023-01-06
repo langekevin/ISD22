@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+from .models import Score
 
 
 def index(request):
@@ -33,11 +34,10 @@ def pacman(request):
     Returns the pacman.html
     """
     if request.user.is_authenticated:
-        username = request.user.username
-        pk = request.user.pk
-        print(pk)
-        print(username)
+        user = request.user
+
     return render(request, 'pacman.html', {})
+
 
 def profile(request):
     """
@@ -54,17 +54,6 @@ def profile(request):
     high_scores = Score.objects.order_by('-score')[:3]
 
     return render(request, 'profile.html', {'score': score, 'high_scores': high_scores})
-
-
-@api_view(('GET', 'POST', ))
-def change_username(request, new_username: str = ''):
-
-    if request.method != 'POST':
-        response = Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return response
-
-    response = Response(status=status.HTTP_200_OK)
-    return response
 
 
 def registration(request):
