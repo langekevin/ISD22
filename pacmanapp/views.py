@@ -1,6 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+from rest_framework.decorators import api_view
+from django.contrib.auth.models import User
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 
 
 def index(request):
@@ -69,3 +74,15 @@ def change_username(request, new_username: str = ''):
 
 def registration(request):
     return render(request, 'registration.html', {})
+
+
+class HighScore(APIView):
+    
+    def get(self, request):
+        # TODO: Get the high score of the player
+        data = {'highScore': 10290}
+        return Response(data, status=200)
+    
+    def post(self, request):
+        # TODO: Save the new high score of the user if it is a high score
+        return Response(status=201)
