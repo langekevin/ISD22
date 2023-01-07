@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
+from .models import Score
 
 
 def index(request):
@@ -33,17 +34,26 @@ def pacman(request):
     Returns the pacman.html
     """
     if request.user.is_authenticated:
-        username = request.user.username
-        pk = request.user.pk
-        print(pk)
-        print(username)
+        user = request.user
+
     return render(request, 'pacman.html', {})
 
-def profile(requeest):
+
+def profile(request):
     """
     Returns the profile.html
     """
-    return render(requeest, 'profile.html', {})
+    if not request.user.is_authenticated:
+        return redirect('index')
+
+    user = request.user
+    score = Score.objects.filter(player=user).first()
+    if score is None:
+        score = Score(player=user, score=0)
+
+    high_scores = Score.objects.order_by('-score')[:3]
+
+    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores})
 
 
 def registration(request):
