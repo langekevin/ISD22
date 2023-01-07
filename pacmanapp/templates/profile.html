@@ -2,6 +2,24 @@
 
 {% block content %}
 
-    <h1>Profile</h1>
+    {% load static %}
+
+    <div class="profile-background">
+        <div class="profile-wrapper">
+            <div class="profile_card profile_text">
+                <img src="https://avatarfiles.alphacoders.com/103/thumb-103261.gif" class="avatar">
+                <div class="profile_info">
+                    <h1 class="name_score">{{ score.player.username }}</h1>
+                    <h1 class="name_score">Maximum score: {{ score.score }}</h1>
+                </div>
+                <div class="scores">
+                    <h1 class="top frame">Top 3 players:</h1>
+                    {% for high_score in high_scores %}
+                        <h1 class="top">{{ high_score.player.username }} - {{ high_score.score }}</h1>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
