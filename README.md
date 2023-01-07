@@ -1,4 +1,4 @@
-# ISD22 :3
+# ISD22
 
 ISD22 Project - Pacman
 
