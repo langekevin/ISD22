@@ -291,6 +291,9 @@ class Player {
      */
     addToScore(number) {
         this.score += number * 10;
+        if (this.score >= this.highScore) {
+            this.highScore = this.score;
+        }
     }
 
     /**
@@ -886,7 +889,9 @@ class Pacman {
             this.drawGameOver();
             if (Date.now() > this.dyingTimer + 3 * 1000){
                 this.gameOverHandler();
+                this.currentState = PLAYING_STATES.WAITING;
             }
+
         }
     }
 
@@ -909,11 +914,16 @@ class Pacman {
     gameOverHandler() {
         // Post the current state to the backend and redirect to the
         // result page
-        fetch("/highscore", {
+        
+        const csrfToken = this.getCsrfToken();
+
+        fetch("http://thebestpacman.ddns.net/highscore", {
             method: 'POST',
+            mode: "same-origin",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrfToken
             },
             body: JSON.stringify({'score': this.player.score})
         }).then(response => {
@@ -921,6 +931,12 @@ class Pacman {
                 window.location.href = "/pacman";
             }
         });
+    }
+
+    getCsrfToken(){
+        const value = `; ${document.cookie}`;
+        const parts = value.split("; csrftoken=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
     async getPlayerHighScore() {
