@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-9n(8^sz4f(p*gh4-8#7x$kxc8v!9(7dpzbadls!hda_c5#ny5z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "pacmanapp.apps.PacmanappConfig"
+    "pacmanapp.apps.PacmanappConfig",
+    "rest_framework"
 ]
 
 MIDDLEWARE = [

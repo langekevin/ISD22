@@ -5,6 +5,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import User
 from .forms import NewUserForm
 from .models import Score
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 
 
 def index(request):
@@ -67,6 +70,17 @@ def registration(request):
         user = form.save()
         login(request, user)
         return redirect('pacman')
-
     form = NewUserForm()
     return render(request, 'registration.html', {'form': form})
+
+
+class HighScore(APIView):
+    
+    def get(self, request):
+        # TODO: Get the high score of the player
+        data = {'highScore': 10290}
+        return Response(data, status=200)
+    
+    def post(self, request):
+        # TODO: Save the new high score of the user if it is a high score
+        return Response(status=201)

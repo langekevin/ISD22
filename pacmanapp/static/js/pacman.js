@@ -1,15 +1,15 @@
 /**
  * Event listener for the canvas for pacman that creates the game
  */
-window.addEventListener('load', () => {
+window.addEventListener("load", () => {
     const canvas = document.querySelector("#pacman-canvas");
     const ctx = canvas.getContext("2d");
 
     // Resizing
     const container = document.querySelector("#pacman-container");
     let size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 30;
-    canvas.setAttribute("width", (size * 30) + "px");
-    canvas.setAttribute("height", (size * 33) + 75 + "px");
+    canvas.setAttribute("width", size * 30 + "px");
+    canvas.setAttribute("height", size * 33 + 75 + "px");
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
@@ -34,7 +34,7 @@ class Map {
     }
 
     drawPills(ctx) {
-        ctx.strokeStyle = '#0033da';
+        ctx.strokeStyle = "#0033da";
         ctx.lineWidth = 3;
 
         for (let i = 0; i < LINES.length; i++) {
@@ -44,9 +44,15 @@ class Map {
             for (let j = 0; j < line.length; j++) {
                 let move = line[j];
                 if (move.move) {
-                    ctx.moveTo(move.move[0] * this.blockSize + CANVAS_OFFSET_X, move.move[1] * this.blockSize + CANVAS_OFFSET_Y);
+                    ctx.moveTo(
+                        move.move[0] * this.blockSize + CANVAS_OFFSET_X,
+                        move.move[1] * this.blockSize + CANVAS_OFFSET_Y
+                    );
                 } else if (move.line) {
-                    ctx.lineTo(move.line[0] * this.blockSize + CANVAS_OFFSET_X, move.line[1] * this.blockSize + CANVAS_OFFSET_Y);
+                    ctx.lineTo(
+                        move.line[0] * this.blockSize + CANVAS_OFFSET_X,
+                        move.line[1] * this.blockSize + CANVAS_OFFSET_Y
+                    );
                 } else if (move.curve) {
                     ctx.quadraticCurveTo(
                         move.curve[0] * this.blockSize + CANVAS_OFFSET_X,
@@ -59,11 +65,17 @@ class Map {
             ctx.stroke();
         }
 
-        ctx.strokeStyle = 'rgba(80,80,80,0.79)';
+        ctx.strokeStyle = "rgba(80,80,80,0.79)";
         ctx.lineWidth = 12;
         ctx.beginPath();
-        ctx.moveTo(13.55 * this.blockSize, 13.75 * this.blockSize + CANVAS_OFFSET_Y);
-        ctx.lineTo(16.45 * this.blockSize, 13.75 * this.blockSize + CANVAS_OFFSET_Y);
+        ctx.moveTo(
+            13.55 * this.blockSize,
+            13.75 * this.blockSize + CANVAS_OFFSET_Y
+        );
+        ctx.lineTo(
+            16.45 * this.blockSize,
+            13.75 * this.blockSize + CANVAS_OFFSET_Y
+        );
         ctx.stroke();
 
         this.drawPoints(ctx);
@@ -78,11 +90,56 @@ class Map {
         for (let y = 0; y < this.mapArray.length; y++) {
             for (let x = 0; x < this.mapArray[y].length; x++) {
                 if (this.mapArray[y][x] === MAP_ELEMENTS.ITEM) {
-                    ctx.drawImage(this.pizzaImage, (x + 0.3) * this.blockSize, (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
+                    ctx.drawImage(
+                        this.pizzaImage,
+                        (x + 0.3) * this.blockSize,
+                        (y + 0.3) * this.blockSize + CANVAS_OFFSET_Y,
+                        10,
+                        10
+                    );
                 } else if (this.mapArray[y][x] === MAP_ELEMENTS.BIG_ITEM) {
-                    ctx.drawImage(this.cakeImage, (x + 0.1) * this.blockSize, y * this.blockSize + CANVAS_OFFSET_Y, 16, 16);
+                    ctx.drawImage(
+                        this.cakeImage,
+                        (x + 0.1) * this.blockSize,
+                        y * this.blockSize + CANVAS_OFFSET_Y,
+                        16,
+                        16
+                    );
                 }
             }
+        }
+    }
+
+    /**
+     * Draws the description and the score on the map
+     * @param {object} ctx Canvas object of the map
+     * @param {number} score Current score of the player
+     * @param {number} highScore Highscore of the player
+     */
+    drawDescription(ctx, score, highScore = 10000) {
+        ctx.font = "bold 24px Courier New";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 5);
+        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 5);
+        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 5);
+        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 5);
+    }
+
+    /**
+     * Draws the remaining lives on the map
+     * @param {object} ctx Canvas object
+     * @param {number} nbLifes Number of remaining lives
+     */
+    drawLifes(ctx, nbLifes = 3) {
+        ctx.fillStyle = "#FFFF00";
+        for (let i = 0; i < nbLifes; i++) {
+            ctx.fillRect(
+                2 * (this.blockSize + this.blockSize * i),
+                35 * this.blockSize,
+                10,
+                10
+            );
         }
     }
 
@@ -98,7 +155,7 @@ class Map {
         ctx.clearRect(0, 0, width, height);
 
         // Create the new background
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, width, height);
     }
 
@@ -184,7 +241,9 @@ class Position {
             case 1:
                 return Math.round(this._y);
             default:
-                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.asInteger.name}`);
+                throw new Error(
+                    `The axis ${axis} does not exist in ${Position.prototype.asInteger.name}`
+                );
         }
     }
 
@@ -194,13 +253,15 @@ class Position {
      * @return {boolean} True if position can be considered as an integer.
      */
     almostInteger(axis = 0) {
-        switch(axis) {
+        switch (axis) {
             case 0:
                 return Math.abs(Math.round(this._x) - this._x) < 0.0001;
             case 1:
                 return Math.abs(Math.round(this._y) - this._y) < 0.0001;
             default:
-                throw new Error(`The axis ${axis} does not exist in ${Position.prototype.almostInteger.name}`);
+                throw new Error(
+                    `The axis ${axis} does not exist in ${Position.prototype.almostInteger.name}`
+                );
         }
     }
 }
@@ -218,9 +279,10 @@ class Player {
         this.direction = KEYS.A;
         this.eaten = false;
         this.due = null;
-        this.lives = 3;
+        this.lives = 1;
         this.score = 0;
         this.blockSize = blockSize;
+        this.highScore = 0;
     }
 
     /**
@@ -228,22 +290,21 @@ class Player {
      * @param{number} number
      */
     addToScore(number) {
-        this.score += number;
+        this.score += number * 10;
     }
 
     /**
      * Subtracts a life from the lives of the player
      */
-    died(){
+    died() {
         this.lives -= 1;
     }
 
     /**
      * Calculates the new position of the player.
-     * @param{Map} map Instance of the class Map
      * @returns{{new: Position, old: Position}}
      */
-    move(map){
+    move() {
         let newPosition = null;
         let oldPosition = this.position;
 
@@ -259,7 +320,7 @@ class Player {
         newPosition = this.getsOutOfMap(newPosition);
 
         this.position = newPosition;
-        return {new: this.position, old: oldPosition}
+        return { new: this.position, old: oldPosition };
     }
 
     /**
@@ -267,13 +328,14 @@ class Player {
      * and sets the new direction if possible
      * @return {Position} New position if the change in the new direction is possible
      */
-    tryChangeDirection(){
-        let x = 0, y = 0;
+    tryChangeDirection() {
+        let x = 0,
+            y = 0;
         let newPosition = this.getNextPosition(this.due);
         if ((this.due === KEYS.A || this.due === KEYS.D) && newPosition.almostInteger(1)) {
             x = newPosition.asInteger(0);
             y = newPosition.asInteger(1);
-            if (this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0 || this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0){
+            if ((this.due === KEYS.A && MAP_ARRAY[y][x - 1] !== 0) || (this.due === KEYS.D && MAP_ARRAY[y][x + 1] !== 0)) {
                 this.direction = this.due;
             } else {
                 newPosition = null;
@@ -281,7 +343,7 @@ class Player {
         } else if ((this.due === KEYS.W || this.due === KEYS.S) && newPosition.almostInteger(0)) {
             x = newPosition.asInteger(0);
             y = newPosition.asInteger(1);
-            if (this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0 || this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0) {
+            if ((this.due === KEYS.W && MAP_ARRAY[y - 1][x] !== 0) || (this.due === KEYS.S && MAP_ARRAY[y + 1][x] !== 0)) {
                 this.direction = this.due;
             } else {
                 newPosition = null;
@@ -297,9 +359,9 @@ class Player {
      * @param{Position} oldPosition
      * @returns{Position} New Position of the player
      */
-    tryMoveIntoDirection(oldPosition){
+    tryMoveIntoDirection(oldPosition) {
         let newPosition = this.getNextPosition(this.direction);
-        if (oldPosition.isOnSquare()){
+        if (oldPosition.isOnSquare()) {
             let x = oldPosition.asInteger(0);
             let y = oldPosition.asInteger(1);
             if (this.direction === KEYS.A && MAP_ARRAY[y][x - 1] === 0) {
@@ -317,7 +379,7 @@ class Player {
 
     getsOutOfMap(newPosition) {
         if (newPosition.asInteger(1) !== 15) {
-            return newPosition
+            return newPosition;
         }
 
         if (newPosition.x >= 28.5 && this.direction === KEYS.D) {
@@ -336,8 +398,14 @@ class Player {
      */
     getNextPosition(direction) {
         return new Position(
-            this.position.x + ((direction === KEYS.A && -0.1) || (direction === KEYS.D && 0.1) || 0),
-            this.position.y + ((direction === KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+            this.position.x +
+                ((direction === KEYS.A && -0.1) ||
+                    (direction === KEYS.D && 0.1) ||
+                    0),
+            this.position.y +
+                ((direction === KEYS.W && -0.1) ||
+                    (direction === KEYS.S && 0.1) ||
+                    0)
         );
     }
 
@@ -346,8 +414,13 @@ class Player {
      * @param{object} ctx
      */
     draw(ctx) {
-        ctx.fillStyle = '#ff9100';
-        ctx.fillRect((this.position.x + 0.25) * this.blockSize, (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y, 10, 10);
+        ctx.fillStyle = "#ff9100";
+        ctx.fillRect(
+            (this.position.x + 0.25) * this.blockSize,
+            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
+            10,
+            10
+        );
     }
 
     /**
@@ -356,15 +429,15 @@ class Player {
      * @returns {boolean}
      */
     keyDown(e) {
-        if (e.keyCode === KEYS.A) {
+        if (e.keyCode === KEYS.A || e.keyCode === KEYS.LEFT) {
             this.due = KEYS.A;
-        } else if (e.keyCode === KEYS.S) {
+        } else if (e.keyCode === KEYS.S || e.keyCode === KEYS.DOWN) {
             this.due = KEYS.S;
-        } else if (e.keyCode === KEYS.D) {
+        } else if (e.keyCode === KEYS.D || e.keyCode === KEYS.RIGHT) {
             this.due = KEYS.D;
-        } else if (e.keyCode === KEYS.W) {
+        } else if (e.keyCode === KEYS.W || e.keyCode === KEYS.UP) {
             this.due = KEYS.W;
-        } else if (k.keyCode === KEYS.N) {
+        } else if (e.keyCode === KEYS.N) {
             this.due = KEYS.N;
         }
         return true;
@@ -379,23 +452,234 @@ class Ghost {
      * Initializes the Ghost object
      * @param color
      */
-    constructor(color) {
+    constructor(ghostObject, blockSize, playerLevel = 1) {
         /* Variables for the ghost class */
-        this.color = color
+        this.color = ghostObject.color;
+        this.position = ghostObject.startingPoint;
+        this.offsetChaseMode = ghostObject.offsetChaseMode;
+        this.homePosition = ghostObject.homePosition;
+        this.blockSize = blockSize;
         this.isEatable = false;
+        this.isChasingMode = false;
+        this.timer = Date.now();
+        this.duration = 0;
+        this.mode = "CHASE";
+        this.direction = KEYS.A;
+        this.name = ghostObject.name;
+        this.targetPosition = ghostObject.homePosition;
+        this.playerLevel = playerLevel;
+        this.movements = [...GHOST_MOVEMENTS[playerLevel]];
+        this.hasStarted = false;
+        this.eatenDotsCounter = 0;
+        this.eatenDotsMin = ghostObject.eatenDotsMin;
     }
 
     /**
      * Available colors of the ghosts
      * @type {string[]}
      */
-    static GHOST_SPECS = ['#00FFDE', '#FF0000', '#FFB8DE', '#FFB847'];
+    static GHOST_SPECS = ["#00FFDE", "#FF0000", "#FFB8DE", "#FFB847"];
 
     /**
      * Toggles the is eatable state of the ghost.
      */
-    toggleEatable(){
+    toggleEatable() {
         this.isEatable = !this.isEatable;
+    }
+
+    getDistanceToTarget(x, y) {
+        return Math.sqrt((x - this.targetPosition.x) ** 2 + (y - this.targetPosition.y) ** 2)
+    }
+
+    startGhost() {
+        this.hasStarted = true;
+        this.mode = this.movements[0].type;
+        this.duration = this.movements[0].duration;
+        this.movements.shift();
+        this.timer = Date.now();
+    }
+
+    increaseEatenDotsCounter() {
+        this.eatenDotsCounter++;
+    }
+
+    isStartable(){
+        if (this.eatenDotsCounter >= this.eatenDotsMin) {
+            this.startGhost();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks which direction is best to get fast to the target.
+     * @param {Position} position Current Position of the ghost
+     */
+    getBestDecision(x, y) {
+        let bestDecision = this.direction;
+        let minDistance = Number.MAX_VALUE;
+        let newDistance;
+        
+        let possibleDecisions = [];
+
+        if (this.direction === KEYS.S || this.direction === KEYS.W) {
+            possibleDecisions = [KEYS.A, KEYS.D, this.direction];
+        } else if (this.direction === KEYS.A || this.direction === KEYS.D) {
+            possibleDecisions = [KEYS.W, KEYS.S, this.direction];
+        } 
+        possibleDecisions.forEach(decision => {
+            if (decision === KEYS.A && GHOST_ARRAY[y][x - 1] !== GHOST_INTERSECTIONS.WALL) {
+                
+                newDistance = this.getDistanceToTarget(x - 1, y);
+            } else if (decision === KEYS.S && GHOST_ARRAY[y + 1][x] !== GHOST_INTERSECTIONS.WALL) {
+                newDistance = this.getDistanceToTarget(x, y + 1);
+            } else if (decision === KEYS.D && GHOST_ARRAY[y][x + 1] !== GHOST_INTERSECTIONS.WALL) {
+                newDistance = this.getDistanceToTarget(x + 1, y);
+            } else if (decision === KEYS.W && GHOST_ARRAY[y - 1][x] !== GHOST_INTERSECTIONS.WALL) {
+                newDistance = this.getDistanceToTarget(x, y - 1);
+            } else {
+                newDistance = Number.MAX_VALUE;
+            }
+
+            if (newDistance < minDistance) {
+                minDistance = newDistance;
+                bestDecision = decision;
+            }
+        });
+        return bestDecision;
+    }
+
+    checkCurrentMode(playerPosition) {
+        if (this.mode === "SCATTER") {
+            this.targetPosition = this.homePosition;
+        } else if (this.mode === "CHASE") {
+            this.targetPosition = playerPosition;
+        }
+
+        if (this.timer + this.duration * 1000 < Date.now() && this.movements.length > 0) {
+            this.duration = this.movements[0].duration;
+            this.mode = this.movements[0].type;
+            this.movements.shift();
+            this.timer = Date.now();
+        }
+    }
+
+    move(playerPosition) {
+        if (!this.hasStarted) {
+            return;
+        }
+        let newPosition = null;
+
+        this.checkCurrentMode(playerPosition);
+        this.correctDirection();
+
+        newPosition = this.getNextPosition(this.direction);
+        // Check if ghost goes out of the map
+        newPosition = this.getsOutOfMap(newPosition);
+
+        this.position = newPosition;
+    }
+
+    correctDirection() {
+        // Check if ghost is on a whole square
+        if (this.position.isOnSquare()) {
+            // check if it is an intersection
+            const x = this.position.asInteger(0);
+            const y = this.position.asInteger(1);
+
+            if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL) {
+                // Just a normal intersection.
+                // Choose the direction to go.
+                this.direction = this.getBestDecision(x, y);
+            } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
+                // One of the special four intersections with limited options
+                // Choose the direction
+                if (this.direction === KEYS.S) {
+                    // TODO: Implement the decision which direction should be used in order to continue
+                    this.direction = KEYS.A;
+                }
+            } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.GHOST_HOUSE) {
+                if (x < 14) {
+                    this.direction = KEYS.D;
+                } else if (x > 14) {
+                    this.direction = KEYS.A;
+                } else {
+                    this.direction = KEYS.W;
+                }
+            } else {
+                // Not on an intersection
+                // Check if a move into the current direction is still possible and change direction if not
+                if (this.direction === KEYS.A) {
+                    if (GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL) {
+                        if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                            this.direction = KEYS.S;
+                        } else {
+                            this.direction = KEYS.W;
+                        }
+                    }
+                } else if (this.direction === KEYS.S) {
+                    if (GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                            this.direction = KEYS.D;
+                        } else {
+                            this.direction = KEYS.A;
+                        }
+                    }
+                } else if (this.direction === KEYS.D) {
+                    if (GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL) {
+                        if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                            this.direction = KEYS.S;
+                        } else {
+                            this.direction = KEYS.W;
+                        }
+                    }
+                } else {
+                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                            this.direction = KEYS.D;
+                        } else {
+                            this.direction = KEYS.A;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    getsOutOfMap(newPosition) {
+        if (newPosition.asInteger(1) !== 15) {
+            return newPosition;
+        }
+
+        if (newPosition.x >= 28.5 && this.direction === KEYS.D) {
+            newPosition.x = 1;
+        } else if (newPosition.x <= 1 && this.direction === KEYS.A) {
+            newPosition.x = 28.5;
+        }
+
+        return newPosition;
+    }
+
+    getNextPosition(direction) {
+        return new Position(
+            this.position.x + ((direction == KEYS.A && -0.1) || (direction == KEYS.D && 0.1) || 0),
+            this.position.y + ((direction == KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+        );
+    }
+
+    drawGhost(ctx) {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(
+            (this.position.x + 0.25) * this.blockSize,
+            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
+            10,
+            10
+        );
+    }
+
+    atePlayer(playerPosition) {
+        const distance = Math.sqrt((playerPosition.x - this.position.x) ** 2 + (playerPosition.y - this.position.y) ** 2);
+        return distance < 0.5;
     }
 }
 
@@ -427,13 +711,15 @@ class Pacman {
         this.player = null;
         this.timer = null;
         this.currentState = PLAYING_STATES.PLAYING;
+        this.activeGhostCounter = 0;
+        this.dyingTimer = null;
     }
 
     /**
      * Photos per second that will be rendered to the screen.
      * @type {number}
      */
-    static FPS = 30;
+    static FPS = 40;
 
     /**
      * Function prevents default events for key presses if the current state
@@ -455,7 +741,12 @@ class Pacman {
     keyDown(e) {
         if (e.keyCode === KEYS.N) {
             // Start new game
-        } else if (e.keyCode === KEYS.P && this.currentState === PLAYING_STATES.PAUSE) {
+            this.currentState = PLAYING_STATES.COUNT_DOWN;
+            this.timer = Date.now();
+        } else if (
+            e.keyCode === KEYS.P &&
+            this.currentState === PLAYING_STATES.PAUSE
+        ) {
             // Resume to game
         } else if (e.keyCode === KEYS.P) {
             // Set game to pause
@@ -467,9 +758,49 @@ class Pacman {
     }
 
     /**
+     * Draws the start screen when the game has initialized.
+     * TODO: This can eventually be moved to the map.
+     */
+    drawStartNewGame() {
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+
+        this.ctx.font = "bold 24px Courier New";
+        this.ctx.fillStyle = "#FFFFFF";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("Press N to start new game...", this.blockSize * 15, this.blockSize * 18);
+    }
+
+    drawCountDown(remainingTime) {
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+
+        this.ctx.font = "bold 32px Courier New";
+        this.ctx.fillStyle = "#FFFFFF";
+        this.ctx.textAlign= "center";
+        
+        
+        this.ctx.fillText("GAME WILL START IN", this.blockSize * 15, this.blockSize * 17);
+        this.ctx.fillText(remainingTime.toString(), this.blockSize * 15, this.blockSize * 20);
+    }
+
+    drawGameOver() {
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+
+        this.ctx.font = "bold 32px Courier New";
+        this.ctx.fillStyle = "#FFFFFF";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("GAME OVER", this.blockSize * 15, this.blockSize * 18);
+    }
+
+    /**
      * Initializes the game by drawing everything on the canvas element.
      */
     init() {
+        // Get the high score of the player
+        this.getPlayerHighScore();
+
         // Initialize the map
         this.map = new Map(this.blockSize);
 
@@ -477,23 +808,31 @@ class Pacman {
         this.player = new Player(this.blockSize);
 
         // Initialize the ghosts
-        for (let i = 0; i < Ghost.GHOST_SPECS.length; i++) {
-            this.ghosts.push(new Ghost(Ghost.GHOST_SPECS[i]));
+        for (let i = 0; i < GHOSTS.length; i++) {
+            this.ghosts.push(new Ghost(GHOSTS[i], this.blockSize));
         }
 
         // Set the current state to countdown
-        this.currentState = PLAYING_STATES.COUNT_DOWN;
+        this.currentState = PLAYING_STATES.INITIALIZING;
 
         // Start the main loop
         // document.addEventListener('keydown', this.keyDown, true);
-        document.addEventListener('keydown', (e) => {
-            this.keyDown(e);
-        }, true);
+        document.addEventListener(
+            "keydown",
+            (e) => {
+                this.keyDown(e);
+            },
+            true
+        );
 
         // document.addEventListener('keypress', this.keyPress, true);
-        document.addEventListener('keypress', (e) => {
-            this.keyPress(e);
-        }, true);
+        document.addEventListener(
+            "keypress",
+            (e) => {
+                this.keyPress(e);
+            },
+            true
+        );
 
         this.timer = window.setInterval(() => {
             this.mainLoop();
@@ -505,31 +844,91 @@ class Pacman {
      * canvas of the application.
      * This method executes every X seconds
      */
-    mainLoop(){
+    mainLoop() {
         this.map.resetCanvas(this.ctx, this.canvas);
 
         // Draw the pills
         this.map.drawPills(this.ctx);
+        this.map.drawDescription(this.ctx, this.player.score, this.player.highScore);
+        this.map.drawLifes(this.ctx, this.player.lives);
 
-        this.player.draw(this.ctx);
-
-        this.player.move(this.ctx);
-
-        let isItem = this.map.isPlacedItem(this.player.position);
-        if (isItem > 0) {
-            this.player.addToScore(isItem);
+        for (let i = 0; i < this.ghosts.length; i++) {
+            this.ghosts[i].drawGhost(this.ctx);
         }
+        this.player.draw(this.ctx);
 
         if (this.currentState === PLAYING_STATES.INITIALIZING) {
             // Game is currently being initialized
+            this.drawStartNewGame();
         } else if (this.currentState === PLAYING_STATES.WAITING) {
             // Game is in waiting state
         } else if (this.currentState === PLAYING_STATES.PLAYING) {
             // Game play is running
-            // this.player.move(this.ctx);
             this.draw();
         } else if (this.currentState === PLAYING_STATES.COUNT_DOWN) {
             // Show the countdown for starting the game
+            let remainingTime = Math.round((this.timer + 3.5 * 1000 - Date.now()) / 1000, 0);
+            if (remainingTime === 0) {
+                this.currentState = PLAYING_STATES.PLAYING;
+                // this.ghosts[0].startGhost();
+                this.player.draw(this.ctx);
+                for (let i = 0; i < this.ghosts.length; i++) {
+                    this.ghosts[i].drawGhost(this.ctx);
+                }
+            } else {
+                this.drawCountDown(remainingTime);
+            }
+        } else if (this.currentState === PLAYING_STATES.DYING) {
+            if (Date.now() > this.dyingTimer + 3 * 1000) {
+                this.resetAfterDying();
+            }
+        } else if (this.currentState === PLAYING_STATES.GAME_OVER) {
+            this.drawGameOver();
+            if (Date.now() > this.dyingTimer + 3 * 1000){
+                this.gameOverHandler();
+            }
+        }
+    }
+
+    resetAfterDying() {
+        this.player.position = new Position(14.5, 24);
+        this.player.due = null;
+        this.player.direction = KEYS.A;
+        this.activeGhostCounter = 0;
+
+        // Reset the ghosts
+        this.ghosts = [];
+        for (let i = 0; i < GHOSTS.length; i++) {
+            this.ghosts.push(new Ghost(GHOSTS[i], this.blockSize));
+        }
+        this.timer = Date.now();
+        this.currentState = PLAYING_STATES.COUNT_DOWN;
+        this.dyingTimer = null;
+    }
+
+    gameOverHandler() {
+        // Post the current state to the backend and redirect to the
+        // result page
+        fetch("/highscore", {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({'score': this.player.score})
+        }).then(response => {
+            if (response.status === 201) {
+                window.location.href = "/pacman";
+            }
+        });
+    }
+
+    async getPlayerHighScore() {
+        const response = await fetch('/highscore');
+        const data = await response.json();
+
+        if (data) {
+            this.player.highScore = data.highScore;
         }
     }
 
@@ -537,13 +936,46 @@ class Pacman {
      * Main function for drawing the map as well as the player on the canvas
      */
     draw() {
-        // Draw the ghosts
+        // Check if we can start the ghost
+        if (this.activeGhostCounter < this.ghosts.length) {
+            if (this.ghosts[this.activeGhostCounter].isStartable()) {
+                this.activeGhostCounter += 1;
+            }
+        }
+
+        // Move the ghosts
+        for (let i = 0; i < this.ghosts.length; i++) {
+            this.ghosts[i].move(this.player.position);
+            // console.log(this.ghosts[i]);
+        }
 
         // Draw the player
+        this.player.move(this.ctx);
+
+        // Check if the player was eaten
+        for (let i = 0; i < this.ghosts.length; i++) {
+            if (this.ghosts[i].atePlayer(this.player.position)) {
+                // Player got eaten
+                this.player.died();
+                if (this.player.lives > 0) {
+                    this.dyingTimer = Date.now();
+                    this.currentState = PLAYING_STATES.DYING;
+                } else {
+                    this.dyingTimer = Date.now();
+                    this.currentState = PLAYING_STATES.GAME_OVER;
+                }
+                return;
+            }
+        }
 
         // Check if the player got new points
-
-        // Check if the player somehow collided with a ghost
+        let isItem = this.map.isPlacedItem(this.player.position);
+        if (isItem > 0) {
+            this.player.addToScore(isItem);
+            if (this.activeGhostCounter < this.ghosts.length) {
+                this.ghosts[this.activeGhostCounter].increaseEatenDotsCounter();
+            }
+        }
     }
 }
 
@@ -562,24 +994,91 @@ const PLAYING_STATES = {
     GAME_OVER: 4,
     COUNT_DOWN: 5,
     INITIALIZING: 6,
-    PAUSE: 7
-}
+    PAUSE: 7,
+};
 
 const KEYS = {
-    N: 0,
+    N: 78,
     P: 1,
     S: 83,
     A: 65,
     W: 87,
-    D: 68
-}
+    D: 68,
+    LEFT: 37,
+    RIGHT: 39,
+    UP: 38,
+    DOWN: 40
+};
 
 const MAP_ELEMENTS = {
     WALL: 0,
     ITEM: 1,
     EMPTY: 2,
     NOT_ALLOWED: 3,
-    BIG_ITEM: 4
+    BIG_ITEM: 4,
+};
+
+const GHOST_PERSONALITIES = {
+    BLINKY: null,
+    PINKY: null,
+    INKY: null,
+    CLYDE: null,
+};
+
+const GHOSTS = [
+    {
+        name: "Blinky",
+        startingPoint: new Position(14.5, 12),
+        homePosition: new Position(25, 0),
+        offsetChaseMode: [0, 0],
+        color: "#FF0000",
+        eatenDotsMin: 0
+    },
+    {
+        name: "Pinky",
+        startingPoint: new Position(14.5, 15),
+        homePosition: new Position(4, 0),
+        offsetChaseMode: [0, 0],
+        color: "#00FFDE",
+        eatenDotsMin: 10
+    },
+    {
+        name: "Inky",
+        startingPoint: new Position(12.5, 15),
+        homePosition: new Position(29, 33),
+        offsetChaseMode: [0, 0],
+        color: "#FFB8DE",
+        eatenDotsMin: 15,
+    },
+    {
+        name: "Clyde",
+        startingPoint: new Position(16.5, 15),
+        homePosition: new Position(0, 33),
+        offsetChaseMode: [0, 0],
+        color: "#FFB847",
+        eatenDotsMin: 20,
+    },
+];
+
+const GHOST_INTERSECTIONS = {
+    WALL: 0,
+    PATH: 1,
+    NORMAL: 2,
+    SPECIAL: 3,
+    GHOST_HOUSE: 4,
+};
+
+const GHOST_MOVEMENTS = {
+    1: [
+        { type: "SCATTER", duration: 7 },
+        { type: "CHASE", duration: 20 },
+        { type: "SCATTER", duration: 7 },
+        { type: "CHASE", duration: 20 },
+        { type: "SCATTER", duration: 5 },
+        { type: "CHASE", duration: 20 },
+        { type: "SCATTER", duration: 5 },
+        { type: "CHASE", duration: Number.MAX_VALUE }
+    ]
 }
 
 /**
@@ -619,8 +1118,45 @@ const MAP_ARRAY = [
     [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const GHOST_ARRAY = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 4, 4, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 4, 4, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 0, 4, 4, 4, 4, 4, 4, 0, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1], // Middle
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 0, 0, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 0, 0, 2, 1, 1, 2, 1, 1, 3, 1, 1, 3, 1, 1, 2, 1, 1, 2, 0, 0, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 1, 1, 2, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+];
+
 
 const LINES = [
     [
@@ -632,7 +1168,7 @@ const LINES = [
         { line: [4.0, 5.5] },
         { curve: [3.5, 5.5, 3.5, 5.0] },
         { line: [3.5, 4.0] },
-        { curve: [3.5, 3.5, 4.0, 3.5] }
+        { curve: [3.5, 3.5, 4.0, 3.5] },
     ],
     [
         { move: [9.0, 3.5] },
@@ -643,7 +1179,7 @@ const LINES = [
         { line: [9.0, 5.5] },
         { curve: [8.5, 5.5, 8.5, 5.0] },
         { line: [8.5, 4.0] },
-        { curve: [8.5, 3.5, 9.0, 3.5] }
+        { curve: [8.5, 3.5, 9.0, 3.5] },
     ],
     [
         { move: [4.0, 7.5] },
@@ -654,7 +1190,7 @@ const LINES = [
         { line: [4.0, 8.5] },
         { curve: [3.5, 8.5, 3.5, 8.0] },
         { line: [3.5, 8.0] },
-        { curve: [3.5, 7.5, 4.0, 7.5] }
+        { curve: [3.5, 7.5, 4.0, 7.5] },
     ],
     [
         { move: [18.0, 3.5] },
@@ -665,7 +1201,7 @@ const LINES = [
         { line: [18.0, 5.5] },
         { curve: [17.5, 5.5, 17.5, 5.0] },
         { line: [17.5, 4.0] },
-        { curve: [17.5, 3.5, 18.0, 3.5] }
+        { curve: [17.5, 3.5, 18.0, 3.5] },
     ],
     [
         { move: [24.0, 3.5] },
@@ -676,7 +1212,7 @@ const LINES = [
         { line: [24.0, 5.5] },
         { curve: [23.5, 5.5, 23.5, 5.0] },
         { line: [23.5, 4.0] },
-        { curve: [23.5, 3.5, 24.0, 3.5] }
+        { curve: [23.5, 3.5, 24.0, 3.5] },
     ],
     [
         { move: [24.0, 7.5] },
@@ -687,7 +1223,7 @@ const LINES = [
         { line: [24.0, 8.5] },
         { curve: [23.5, 8.5, 23.5, 8.0] },
         { line: [23.5, 8.0] },
-        { curve: [23.5, 7.5, 24.0, 7.5] }
+        { curve: [23.5, 7.5, 24.0, 7.5] },
     ],
     [
         { move: [9.0, 7.5] },
@@ -706,7 +1242,7 @@ const LINES = [
         { line: [9.0, 14.5] },
         { curve: [8.5, 14.5, 8.5, 14.0] },
         { line: [8.5, 8.0] },
-        { curve: [8.5, 7.5, 9.0, 7.5] }
+        { curve: [8.5, 7.5, 9.0, 7.5] },
     ],
     [
         { move: [12.0, 7.5] },
@@ -725,7 +1261,7 @@ const LINES = [
         { line: [12.0, 8.5] },
         { curve: [11.5, 8.5, 11.5, 8.0] },
         { line: [11.5, 8.0] },
-        { curve: [11.5, 7.5, 12.0, 7.5] }
+        { curve: [11.5, 7.5, 12.0, 7.5] },
     ],
     [
         { move: [18.0, 10.5] },
@@ -744,7 +1280,7 @@ const LINES = [
         { line: [18.0, 11.5] },
         { curve: [17.5, 11.5, 17.5, 11.0] },
         { line: [17.5, 11.0] },
-        { curve: [17.5, 10.5, 18.0, 10.5] }
+        { curve: [17.5, 10.5, 18.0, 10.5] },
     ],
     [
         { move: [4.0, 22.5] },
@@ -759,7 +1295,7 @@ const LINES = [
         { line: [4.0, 23.5] },
         { curve: [3.5, 23.5, 3.5, 23.0] },
         { line: [3.5, 23.0] },
-        { curve: [3.5, 22.5, 4.0, 22.5] }
+        { curve: [3.5, 22.5, 4.0, 22.5] },
     ],
     [
         { move: [9.0, 16.5] },
@@ -770,7 +1306,7 @@ const LINES = [
         { line: [9.0, 20.5] },
         { curve: [8.5, 20.5, 8.5, 20.0] },
         { line: [8.5, 17.0] },
-        { curve: [8.5, 16.5, 9.0, 16.5] }
+        { curve: [8.5, 16.5, 9.0, 16.5] },
     ],
     [
         { move: [9.0, 22.5] },
@@ -781,7 +1317,7 @@ const LINES = [
         { line: [9.0, 23.5] },
         { curve: [8.5, 23.5, 8.5, 23.0] },
         { line: [8.5, 23.0] },
-        { curve: [8.5, 22.5, 9.0, 22.5] }
+        { curve: [8.5, 22.5, 9.0, 22.5] },
     ],
     [
         { move: [4.0, 28.5] },
@@ -800,7 +1336,7 @@ const LINES = [
         { line: [4.0, 29.5] },
         { curve: [3.5, 29.5, 3.5, 29.0] },
         { line: [3.5, 29.0] },
-        { curve: [3.5, 28.5, 4.0, 28.5] }
+        { curve: [3.5, 28.5, 4.0, 28.5] },
     ],
     [
         { move: [12.0, 19.5] },
@@ -819,7 +1355,7 @@ const LINES = [
         { line: [12.0, 20.5] },
         { curve: [11.5, 20.5, 11.5, 20.0] },
         { line: [11.5, 20.0] },
-        { curve: [11.5, 19.5, 12.0, 19.5] }
+        { curve: [11.5, 19.5, 12.0, 19.5] },
     ],
     [
         { move: [12.0, 25.5] },
@@ -838,7 +1374,7 @@ const LINES = [
         { line: [12.0, 26.5] },
         { curve: [11.5, 26.5, 11.5, 26.0] },
         { line: [11.5, 26.0] },
-        { curve: [11.5, 25.5, 12.0, 25.5] }
+        { curve: [11.5, 25.5, 12.0, 25.5] },
     ],
     [
         { move: [18.0, 22.5] },
@@ -849,7 +1385,7 @@ const LINES = [
         { line: [18.0, 23.5] },
         { curve: [17.5, 23.5, 17.5, 23.0] },
         { line: [17.5, 23.0] },
-        { curve: [17.5, 22.5, 18.0, 22.5] }
+        { curve: [17.5, 22.5, 18.0, 22.5] },
     ],
     [
         { move: [24.0, 22.5] },
@@ -864,7 +1400,7 @@ const LINES = [
         { line: [24.0, 26.5] },
         { curve: [23.5, 26.5, 23.5, 26.0] },
         { line: [23.5, 23.0] },
-        { curve: [23.5, 22.5, 24.0, 22.5] }
+        { curve: [23.5, 22.5, 24.0, 22.5] },
     ],
     [
         { move: [21.0, 16.5] },
@@ -875,7 +1411,7 @@ const LINES = [
         { line: [21.0, 20.5] },
         { curve: [20.5, 20.5, 20.5, 20.0] },
         { line: [20.5, 17.0] },
-        { curve: [20.5, 16.5, 21.0, 16.5] }
+        { curve: [20.5, 16.5, 21.0, 16.5] },
     ],
     [
         { move: [18.0, 28.5] },
@@ -894,7 +1430,7 @@ const LINES = [
         { line: [18.0, 29.5] },
         { curve: [17.5, 29.5, 17.5, 29.0] },
         { line: [17.5, 29.0] },
-        { curve: [17.5, 28.5, 18.0, 28.5] }
+        { curve: [17.5, 28.5, 18.0, 28.5] },
     ],
     [
         { move: [12.0, 13.5] },
@@ -917,7 +1453,7 @@ const LINES = [
         { line: [12.0, 17.5] },
         { curve: [11.5, 17.5, 11.5, 17.0] },
         { line: [11.5, 14.0] },
-        { curve: [11.5, 13.5, 12.0, 13.5] }
+        { curve: [11.5, 13.5, 12.0, 13.5] },
     ],
     [
         { move: [1.0, 16.5] },
@@ -953,7 +1489,7 @@ const LINES = [
         { curve: [23.5, 20.5, 23.5, 20.0] },
         { line: [23.5, 17.0] },
         { curve: [23.5, 16.5, 24.0, 16.5] },
-        { line: [29, 16.5] }
+        { line: [29, 16.5] },
     ],
     [
         { move: [1.0, 17.0] },
@@ -1020,7 +1556,6 @@ const LINES = [
         { curve: [23.5, 10.5, 23.5, 11.0] },
         { line: [23.5, 14.0] },
         { curve: [23.5, 14.5, 24.0, 14.5] },
-        { line: [29.0, 14.5] }
-    ]
-]
-
+        { line: [29.0, 14.5] },
+    ],
+];
