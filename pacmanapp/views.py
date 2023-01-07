@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import User
 from .forms import NewUserForm
+from .models import Score
 
 
 def index(request):
@@ -47,7 +48,17 @@ def profile(request):
     """
     Returns the profile.html
     """
-    return render(request, 'profile.html', {})
+    if not request.user.is_authenticated:
+        return redirect('index')
+
+    user = request.user
+    score = Score.objects.filter(player=user).first()
+    if score is None:
+        score = Score(player=user, score=0)
+
+    high_scores = Score.objects.order_by('-score')[:3]
+
+    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores})
 
 
 def registration(request):

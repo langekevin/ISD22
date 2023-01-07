@@ -50,3 +50,7 @@ Afterwards you can start the development server on your local machine
 ```bash
 python manage.py runserver
 ```
+
+# Hosting
+
+@sirAdmiral will put the documentation for hosting here
