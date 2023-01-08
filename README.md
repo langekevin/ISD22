@@ -18,7 +18,7 @@ ISD22 Project - Pacman
 
 # Task breakdown
 
-- Anastassiya: profile page
+- Anastassiya Nikitina: profile page
 - Tobias Thomé: hosting and documentation
 - Gian-Luca Frisch: login and registration pages
 - Kevin Lange: pacman game
