@@ -302,6 +302,8 @@ class Player {
         this.blockSize = blockSize;
         this.highScore = 0;
         this.newLifeAt = 10000;
+        this.hasJustEaten = 0;
+        this.keyPressTimer = Date.now();
     }
 
     /**
@@ -317,6 +319,7 @@ class Player {
             this.lives += 1;
             this.newLifeAt += 10000;
         }
+        this.hasJustEaten = 0;
     }
 
     /**
@@ -334,6 +337,11 @@ class Player {
         let movingPossible = false;
         let newPosition = null;
         let oldPosition = this.position;
+
+        // Reset the due if too much time has passed
+        if (this.due && this.keyPressTimer + 0.3 * 1000 < Date.now()) {
+            this.due = null;
+        }
 
         if (this.due && this.due !== this.direction) {
             newPosition = this.tryChangeDirection();
@@ -446,43 +454,55 @@ class Player {
     draw(ctx) {
         ctx.fillStyle = "#ffff00";
 
-        let arcStart = 1.75 * Math.PI;
-        let arcEnd = 0.25 * Math.PI;
+        let arcStart = 0.25 * Math.PI;
+        let arcEnd = 1.75 * Math.PI;
+
+        if (this.hasJustEaten < 3) {
+            // Decrease the angle if pacman has just eaten an item for the
+            // first 3 times the canvas gets rendered
+            arcStart = 0.05 * Math.PI;
+            arcEnd = 1.95 * Math.PI;
+            this.hasJustEaten += 1;
+        }
+
+        let r = this.blockSize * 0.75;
 
         let startingPointX = (this.position.x + 0.5) * this.blockSize,
             startingPointY = (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y;
+
         if (this.direction === KEYS.A) {
-            startingPointX += 0.3;
+            startingPointX += 5;
+            arcStart += Math.PI;
+            arcEnd += Math.PI;
         } else if (this.direction === KEYS.D) {
-            startingPointX -= 0.3;
+            startingPointX -= 5;
         } else if (this.direction === KEYS.W) {
-            startingPointY += 0.3;
+            startingPointY += 5;
+            arcStart = (arcStart + Math.PI * 3 / 2) % (2 * Math.PI);
+            arcEnd = (arcEnd + Math.PI * 3 / 2) % (2 * Math.PI);
         } else if (this.direction === KEYS.S) {
-            startingPointY -= 0.3;
+            startingPointY -= 5;
+            arcStart = (arcStart + Math.PI / 2) % (2 * Math.PI);
+            arcEnd = (arcEnd + Math.PI / 2) % (2 * Math.PI);
         }
 
         ctx.beginPath();
-        // ctx.moveTo(startingPointX, startingPointY);
+        ctx.moveTo(startingPointX, startingPointY);
 
-
-        // ctx.lineTo(
-        //     (this.position.x + 0.5) * this.blockSize + this.blockSize * 0.75 * 0.5,
-        //     (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y
-        // );
+        ctx.lineTo(
+            (this.position.x + 0.5) * this.blockSize + Math.cos(arcStart) * r,
+            (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y + Math.sin(arcStart) * r
+        );
         ctx.arc(
             (this.position.x + 0.5) * this.blockSize,
             (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y,
-            this.blockSize * 0.75,
-            2 * Math.PI,
-            0 * Math.PI,
-            true
+            r,
+            arcStart,
+            arcEnd,
+            false
         );
-        // ctx.lineTo(
-        //     (this.position.x + 0.5) * this.blockSize,
-        //     (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y
-        // );
+        ctx.lineTo(startingPointX, startingPointY);
         ctx.fill();
-        // ctx.stroke();
     }
 
     /**
@@ -493,12 +513,16 @@ class Player {
     keyDown(e) {
         if (e.keyCode === KEYS.A || e.keyCode === KEYS.LEFT) {
             this.due = KEYS.A;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.S || e.keyCode === KEYS.DOWN) {
             this.due = KEYS.S;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.D || e.keyCode === KEYS.RIGHT) {
             this.due = KEYS.D;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.W || e.keyCode === KEYS.UP) {
             this.due = KEYS.W;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.N) {
             this.due = KEYS.N;
         }
@@ -537,6 +561,8 @@ class Ghost {
         this.eatenDotsMin = ghostObject.eatenDotsMin;
         this.ghostSpeed = 0.1;
         this.waiting = false;
+        this.ghostStateTimer = Date.now();
+        this.showFirstWaves = false;
     }
 
     /**
@@ -549,7 +575,7 @@ class Ghost {
      * Toggles the is eatable state of the ghost.
      */
     makeEatable() {
-        if (this.hasStarted){
+        if (this.hasStarted != this.goHome){
             // Make ghosts eatable
             this.isEatable = true;
 
@@ -755,7 +781,7 @@ class Ghost {
             let bestDecision = null;
 
             [KEYS.A, KEYS.S, KEYS.D, KEYS.W].forEach(direction => {
-                if (!this.isWallInDirection(x, y, direction)) { 
+                if (!this.isWallInDirection(x, y, direction, true)) { 
                     let newX = x, newY = y;
                     if (direction === KEYS.A) {
                         newX = Math.max(x - 1, 0);
@@ -898,16 +924,16 @@ class Ghost {
         }
     }
 
-    isWallInDirection(x, y, direction) {
+    isWallInDirection(x, y, direction, allowGhostHouse = false) {
         switch (direction) {
             case KEYS.A:
-                return GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL;
+                return GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.GHOST_HOUSE);
             case KEYS.S:
-                return GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL;
+                return GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.GHOST_HOUSE);
             case KEYS.D:
-                return GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL;
+                return GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.GHOST_HOUSE);
             case KEYS.W:
-                return GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL;
+                return GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.GHOST_HOUSE);
             default:
                 return true;
         }
@@ -935,16 +961,133 @@ class Ghost {
     }
 
     drawGhost(ctx) {
+        // Colors for the ghost if it is eatable
+        let background = "#072A6C";
+        let color = "#FFFFFF";
+        
+        let r = this.blockSize * 0.7,
+            h = this.blockSize * 0.6,
+            x = (this.position.x) * this.blockSize,
+            y = (this.position.y) * this.blockSize + CANVAS_OFFSET_Y,
+            offsetX = -4,
+            offsetY = -2,
+            eyeOffsetX = 0,
+            eyeOffsetY = 0,
+            bottom = y + r + h + offsetY,
+            waveHeight = r / 3;
+
+        if (this.goHome) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.ellipse(x + offsetX + 3 * r / 5, y + r + offsetY - 1, 5, 6, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 5, 6, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            if (this.direction === KEYS.A) {
+                eyeOffsetX -= 1;
+            } else if (this.direction === KEYS.D) {
+                eyeOffsetX += 1;
+            } else if (this.direction === KEYS.W) {
+                eyeOffsetY -= 2;
+            } else if (this.direction === KEYS.S) {
+                eyeOffsetY += 2;
+            }
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 3, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            return;
+        }
+
         ctx.fillStyle = this.color;
         if (this.isEatable && this.hasStarted) {
-            ctx.fillStyle = "#072A6C";
+            let remainingTime = Math.round((10 * 1000 - (Date.now() - this.timer)) / 500);
+            if (remainingTime < 6) {
+                if (remainingTime % 2 === 0) {
+                    background = '#FFFFFF';
+                    color = '#072A6C';
+                }
+            }
+            ctx.fillStyle = background;
         }
-        ctx.fillRect(
-            (this.position.x + 0.25) * this.blockSize,
-            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
-            10,
-            10
-        );
+
+        if (this.ghostStateTimer + 0.15 * 1000 < Date.now()) {
+            this.showFirstWaves = !this.showFirstWaves;
+            this.ghostStateTimer = Date.now();
+        }
+
+
+        ctx.beginPath();
+        ctx.moveTo(x + offsetX, y + r + offsetY);
+        ctx.arc(x + offsetX + r, y + r + offsetY, r, Math.PI, 2 * Math.PI);
+        ctx.lineTo(x + offsetX + r * 2, y + r + h + offsetY);
+        
+        // Wavy things at the bottom
+        if (this.showFirstWaves) {
+            ctx.lineTo(x + offsetX + 17 / 10 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 7 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 3 * r / 5, bottom);
+            ctx.lineTo(x + offsetX + 3 * r / 10, bottom + waveHeight);
+            ctx.lineTo(x + offsetX, y + h + offsetY + r);
+        } else {
+            ctx.lineTo(x + offsetX + r * 2, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 8 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + 34 / 25 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 6 / 5 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 6 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + 4 * r / 5, bottom);
+            ctx.lineTo(x + offsetX + 4 * r / 5, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 16 * r / 25, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 2 * r / 5, bottom);
+            ctx.lineTo(x + offsetX, bottom + waveHeight);
+        }
+
+        ctx.lineTo(x + offsetX, y + r + offsetY);
+        ctx.fill();
+
+        if (!this.isEatable) {
+            // Draw the basic eyes
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.ellipse(x + offsetX + 3 * r / 5, y + r + offsetY - 1, 4, 5, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 4, 5, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            let eyeOffsetX = 0, eyeOffsetY = 0;
+            
+            if (this.direction === KEYS.A) {
+                eyeOffsetX -= 1;
+            } else if (this.direction === KEYS.D) {
+                eyeOffsetX += 1;
+            } else if (this.direction === KEYS.W) {
+                eyeOffsetY -= 2;
+            } else if (this.direction === KEYS.S) {
+                eyeOffsetY += 2;
+            }
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 2.5, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r, y + r + offsetY - 1, 2.5, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + offsetX + 0.8 * r * 2, y + r + offsetY + 3 / 4 * h);
+            ctx.quadraticCurveTo(x + offsetX + 0.5 * r * 2, y + r + offsetY + 3 / 4 * h - 8, x + offsetX + 0.2 * r * 2, y + r + offsetY + 3 / 4 * h);
+            ctx.stroke();
+        }
     }
 
     collisionDetected(playerPosition) {
@@ -992,7 +1135,7 @@ class Pacman {
      * Photos per second that will be rendered to the screen.
      * @type {number}
      */
-    static FPS = 40;
+    static FPS = 50;
 
     /**
      * Function prevents default events for key presses if the current state
@@ -1145,10 +1288,10 @@ class Pacman {
         this.map.drawDescription(this.ctx, this.player.score, this.player.highScore);
         this.map.drawLifes(this.ctx, this.player.lives);
 
+        this.player.draw(this.ctx);
         for (let i = 0; i < this.ghosts.length; i++) {
             this.ghosts[i].drawGhost(this.ctx);
         }
-        this.player.draw(this.ctx);
 
         if (this.currentState === PLAYING_STATES.INITIALIZING) {
             // Game is currently being initialized
@@ -1167,14 +1310,13 @@ class Pacman {
                 for (let i = 0; i < this.ghosts.length; i++) {
                     this.ghosts[i].drawGhost(this.ctx);
                 }
-                // this.audio.siren.loop = true;
-                // this.audio.siren.play();
             } else {
                 this.drawCountDown(remainingTime - 1);
             }
         } else if (this.currentState === PLAYING_STATES.DYING) {
             if (Date.now() > this.dyingTimer + 3 * 1000) {
                 this.resetAfterDying();
+                this.audio.beginning.play();
             }
         } else if (this.currentState === PLAYING_STATES.GAME_OVER) {
             this.drawGameOver();
@@ -1187,6 +1329,7 @@ class Pacman {
             if (Date.now() > this.dyingTimer + 3 * 1000) {
                 this.map = new Map(this.blockSize);
                 this.resetAfterDying();
+                this.audio.beginning.play();
             }
         }
     }
@@ -1270,6 +1413,7 @@ class Pacman {
                 if (!this.ghosts[i].isEatable) {
                     // Player got eaten
                     this.player.died();
+                    this.audio.death.play();
                     if (this.player.lives > 0) {
                         this.dyingTimer = Date.now();
                         this.currentState = PLAYING_STATES.DYING;
@@ -1283,15 +1427,13 @@ class Pacman {
                 // Player ate the ghost
                 this.ghosts[i].wasEaten();
                 this.player.addToScore(20);
+                this.audio.eatghost.play();
             }
         }
 
         // Check if the player got new points
         let isItem = this.map.isPlacedItem(this.player.position);
         if (isItem > 0) {
-
-            // this.audio.waka.playbackRate = 1.5;
-            // this.audio.waka.play();
             
             this.player.addToScore(isItem);
             
@@ -1307,6 +1449,7 @@ class Pacman {
             }
 
             if (isItem === MAP_ELEMENTS.BIG_ITEM) {
+                this.audio.eatfruit.play();
                 // Start the frightening mode of the ghosts and make them eatable
                 for (let i = 0; i < this.ghosts.length; i++) {
                     this.ghosts[i].makeEatable();
@@ -1335,9 +1478,10 @@ class PacmanAudio {
         this.chomp.src = "static/sounds/pacman_chomp.wav";
         this.death.src = "static/sounds/pacman_death.wav";
         this.eatfruit.src = "static/sounds/pacman_eatfruit.wav";
+        this.eatghost.src = "static/sounds/pacman_eatghost.ogg";
         this.extrapac.src = "static/sounds/pacman_extrapac.wav";
         this.intermission.src = "static/sounds/pacman_intermission.wav";
-        this.waka.src = "static/sounds/pacman_waka_waka.wav";
+        this.waka.src = "static/sounds/pacman_eating.ogg";
         this.siren.src = "static/sounds/pacman_ghost_siren.wav";
     }
 }
