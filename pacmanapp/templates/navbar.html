@@ -1,13 +1,13 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="dd">
     <button class="custom-dropdown-toggle btn-color" type="button" onclick="openDropdown()">PACMAN</button>
-    <ul id="custom-dropdown" class="dropdown-menu">
+    <ul id="custom-dropdown" class="dropdown-menu-ul">
       {% if loggedIn %}
-        <li><a class="dropdown-item" href="pacman">PLAY</a></li>
-        <li><a class="dropdown-item" href="profile">PROFILE</a></li>
-        <li><a class="dropdown-item" href="logout">LOGOUT</a></li>
+        <li><a class="dropdown-item-an" href="pacman">PLAY</a></li>
+        <li><a class="dropdown-item-an" href="profile">PROFILE</a></li>
+        <li><a class="dropdown-item-an" href="logout">LOGOUT</a></li>
       {% else %}
-        <li><a class="dropdown-item" href="">LOGIN</a></li>
+        <li><a class="dropdown-item-an" href="">LOGIN</a></li>
       {% endif %}
     </ul>
   </div>

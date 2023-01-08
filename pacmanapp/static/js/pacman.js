@@ -293,7 +293,7 @@ class Player {
      * @param{number} blockSize Size of one Grid
      */
     constructor(blockSize) {
-        this.position = new Position(14, 24);
+        this.position = new Position(14.5, 24);
         this.direction = KEYS.A;
         this.eaten = false;
         this.due = null;
@@ -301,6 +301,7 @@ class Player {
         this.score = 0;
         this.blockSize = blockSize;
         this.highScore = 0;
+        this.newLifeAt = 10000;
     }
 
     /**
@@ -311,6 +312,10 @@ class Player {
         this.score += number * 10;
         if (this.score >= this.highScore) {
             this.highScore = this.score;
+        }
+        if (this.score > this.newLifeAt) {
+            this.lives += 1;
+            this.newLifeAt += 10000;
         }
     }
 
@@ -439,13 +444,45 @@ class Player {
      * @param{object} ctx
      */
     draw(ctx) {
-        ctx.fillStyle = "#ff9100";
-        ctx.fillRect(
-            (this.position.x + 0.25) * this.blockSize,
-            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
-            10,
-            10
+        ctx.fillStyle = "#ffff00";
+
+        let arcStart = 1.75 * Math.PI;
+        let arcEnd = 0.25 * Math.PI;
+
+        let startingPointX = (this.position.x + 0.5) * this.blockSize,
+            startingPointY = (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y;
+        if (this.direction === KEYS.A) {
+            startingPointX += 0.3;
+        } else if (this.direction === KEYS.D) {
+            startingPointX -= 0.3;
+        } else if (this.direction === KEYS.W) {
+            startingPointY += 0.3;
+        } else if (this.direction === KEYS.S) {
+            startingPointY -= 0.3;
+        }
+
+        ctx.beginPath();
+        // ctx.moveTo(startingPointX, startingPointY);
+
+
+        // ctx.lineTo(
+        //     (this.position.x + 0.5) * this.blockSize + this.blockSize * 0.75 * 0.5,
+        //     (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y
+        // );
+        ctx.arc(
+            (this.position.x + 0.5) * this.blockSize,
+            (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y,
+            this.blockSize * 0.75,
+            2 * Math.PI,
+            0 * Math.PI,
+            true
         );
+        // ctx.lineTo(
+        //     (this.position.x + 0.5) * this.blockSize,
+        //     (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y
+        // );
+        ctx.fill();
+        // ctx.stroke();
     }
 
     /**
@@ -499,6 +536,7 @@ class Ghost {
         this.eatenDotsCounter = 0;
         this.eatenDotsMin = ghostObject.eatenDotsMin;
         this.ghostSpeed = 0.1;
+        this.waiting = false;
     }
 
     /**
@@ -523,6 +561,16 @@ class Ghost {
 
             // Set the timer for eatable duration
             this.timer = Date.now();
+
+            if (this.direction === KEYS.A) {
+                this.direction = KEYS.D;
+            } else if (this.direction === KEYS.D) {
+                this.direction = KEYS.A;
+            } else if (this.direction === KEYS.W) {
+                this.direction = KEYS.S;
+            } else if (this.direction === KEYS.S) {
+                this.direction = KEYS.W;
+            }
         }
     }
 
@@ -554,9 +602,38 @@ class Ghost {
     wasEaten() {
         this.goHome = true;
         this.ghostSpeed = 0.25;
-        this.position.x = this.position.asInteger(0);
-        this.position.y = this.position.asInteger(1);
-        this.targetPosition = new Position(13, 15);
+        this.targetPosition = new Position(14, 12);
+
+        const x = this.position.asInteger(0);
+        const y = this.position.asInteger(1);
+
+        this.position.x = x;
+        this.position.y = y;
+
+        let minDistance = Number.MAX_VALUE;
+            let bestDecision = null;
+
+            [KEYS.A, KEYS.S, KEYS.D, KEYS.W].forEach(direction => {
+                if (!this.isWallInDirection(x, y, direction)) { 
+                    let newX = x, newY = y;
+                    if (direction === KEYS.A) {
+                        newX = Math.max(x - 1, 0);
+                    } else if (direction === KEYS.S) {
+                        newY++;
+                    } else if (direction === KEYS.D) {
+                        newX = Math.min(x + 1, GHOST_ARRAY[y].length);
+                    } else if (direction === KEYS.W) {
+                        newY--;
+                    }
+
+                    let distance = this.getDistanceToTarget(newX, newY);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestDecision = direction;
+                    }
+                }
+            });
+            this.direction = bestDecision;
     }
 
     /**
@@ -624,9 +701,30 @@ class Ghost {
     move(playerPosition) {
         if (!this.hasStarted) {
             return;
+        } else if (this.waiting) {
+            if (Date.now() > this.timer + 3 * 1000) {
+                this.waiting = false;
+            } else {
+                return;
+            }
         }
 
         let newPosition = null;
+
+        if (this.goHome && this.position.isOnSquare()) {
+            const x = this.position.asInteger(0);
+            const y = this.position.asInteger(1);
+
+            if (this.getDistanceToTarget(x, y) < 0.001 && GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.GHOST_HOUSE) {
+                this.ghostSpeed = 0.1;
+                this.goHome = false;
+                this.isEatable = false;
+                this.timer = Date.now();
+                this.position.x = Math.round(this.position.x, 1);
+                this.position.y = Math.round(this.position.y, 1);
+                this.waiting = true;
+            }
+        }
 
         if (!this.goHome) {
             this.checkCurrentMode(playerPosition);
@@ -646,12 +744,13 @@ class Ghost {
         if (!this.position.isOnSquare()) {
             return;
         }
-
         
         const x = this.position.asInteger(0);
         const y = this.position.asInteger(1);
-        
-        if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL ||GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
+        if (this.getDistanceToTarget(x, y) < 0.001 && GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.PATH) {
+            this.direction = KEYS.S;
+            this.targetPosition = new Position(13, 15);
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL ||GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
             let minDistance = Number.MAX_VALUE;
             let bestDecision = null;
 
@@ -677,7 +776,6 @@ class Ghost {
             });
             this.direction = bestDecision;
         } else {
-            console.log("Else case")
             if (this.direction === KEYS.A) {
                 if (GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL) {
                     if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
@@ -712,13 +810,7 @@ class Ghost {
                 }
             }
         }
-
-
-        
-    }
-
-    goHomeFast() {
-
+        return true;
     }
 
     correctDirection() {
@@ -748,7 +840,7 @@ class Ghost {
 
             this.direction = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
 
-        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL) {
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL || GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.IGNORE_WHEN_EATEN) {
             // Just a normal intersection.
             // Choose the direction to go.
             this.direction = this.getBestDecision(x, y);
@@ -1174,8 +1266,8 @@ class Pacman {
 
         // Check if the player was eaten
         for (let i = 0; i < this.ghosts.length; i++) {
-            if (this.ghosts[i].collisionDetected(this.player.position)) {
-                if (!this.ghosts[i].isEatable){
+            if (this.ghosts[i].collisionDetected(this.player.position) && !this.ghosts[i].goHome) {
+                if (!this.ghosts[i].isEatable) {
                     // Player got eaten
                     this.player.died();
                     if (this.player.lives > 0) {
@@ -1190,6 +1282,7 @@ class Pacman {
 
                 // Player ate the ghost
                 this.ghosts[i].wasEaten();
+                this.player.addToScore(20);
             }
         }
 
@@ -1337,6 +1430,7 @@ const GHOST_INTERSECTIONS = {
     NORMAL: 2,
     SPECIAL: 3,
     GHOST_HOUSE: 4,
+    IGNORE_WHEN_EATEN: 5,
 };
 
 const GHOST_MOVEMENTS = {
@@ -1399,10 +1493,10 @@ const GHOST_ARRAY = [
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 0],
+    [0, 0, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 5, 1, 1, 5, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
