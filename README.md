@@ -54,3 +54,32 @@ python manage.py runserver
 # Hosting
 
 @sirAdmiral will put the documentation for hosting here
+
+# Login Page
+
+This is the HTML code for a login page for a web application. It includes a form for users to enter their login credentials, as well as a submit button to send the form data to the server.
+HTML Structure
+The login page consists of a form element with input elements for the username and password fields, and a button element for the submit button.
+The form element has an action attribute that specifies the URL to which the form data will be sent, and a method attribute that specifies the HTTP method to use (in this case, POST).
+The input elements for the username and password fields have type attributes set to text and password, respectively, as well as name attributes that will be used to identify the fields when the form is submitted.
+The button element has a type attribute set to submit and a label that will be displayed on the button.
+CSS Styles
+The login page includes some basic CSS styles to provide layout and formatting for the form elements.
+The form element is given a max-width and centered on the page using the margin: 0 auto rule.
+The input elements are given a width and padding, and the button element is given a background-color and color.
+JavaScript Functionality
+The login page includes a simple JavaScript function to handle form submission. When the form is submitted, the function is called and performs basic validation on the form data, ensuring that the username and password fields are not empty. If the form data is invalid, an error message is displayed to the user. If the form data is valid, the form is submitted to the server for processing.
+
+# Registration Page
+This is the HTML code for a registration page for a web application. It includes a form for users to enter their personal and account information, as well as a submit button to send the form data to the server.
+HTML Structure
+The registration page consists of a form element with input elements for the various fields, and a button element for the submit button.
+The form element has an action attribute that specifies the URL to which the form data will be sent, and a method attribute that specifies the HTTP method to use (in this case, POST).
+The input elements for the fields have type attributes and name attributes that correspond to the type of data being entered and the purpose of the field, respectively. For example, the input element for the email field has a type attribute set to email and a name attribute set to email.
+The button element has a type attribute set to submit and a label that will be displayed on the button.
+CSS Styles
+The registration page includes some basic CSS styles to provide layout and formatting for the form elements.
+The form element is given a max-width and centered on the page using the margin: 0 auto rule.
+The input elements are given a width and padding, and the button element is given a background-color and color.
+JavaScript Functionality
+The registration page includes a simple JavaScript function to handle form submission. When the form is submitted, the function is called and performs validation on the form data, ensuring that all required fields are filled out and that the email address is in a valid format. If the form data is invalid, an error message is displayed to the user. If the form data is valid, the form is submitted to the server for processing.
