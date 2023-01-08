@@ -1,4 +1,4 @@
-# ISD22 :3
+# ISD22
 
 ISD22 Project - Pacman
 
@@ -15,6 +15,13 @@ ISD22 Project - Pacman
 -   The app contains a user profile with the maximum score of the user
 -   The app contains a list of top users scores 
 -   The main area of the website will be the page for actually playing the game
+
+# Task breakdown
+
+Anastassiya: profile page
+Tobias Thomé: hosting and documentation
+Gian-Luca Frisch: login and registration pages
+Kevin Lange: pacman game
 
 # How can I get the code?
 
