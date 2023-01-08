@@ -16,7 +16,7 @@ ISD22 Project - Pacman
 -   The app contains a list of top users scores 
 -   The main area of the website will be the page for actually playing the game
 
-# Task breakdown
+# Task Breakdown
 
 - Anastassiya Nikitina: profile page
 - Tobias Thomé: hosting and documentation
