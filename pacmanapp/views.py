@@ -2,7 +2,7 @@
 File for the endpoint definitions
 """
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,8 +15,12 @@ def index(request):
     """
     Returns the index.html for testing purposes
     """
+    is_logged_in = False
+    if request.user.is_authenticated:
+        is_logged_in = True
+    
     form = AuthenticationForm()
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'index.html', {'form': form, 'loggedIn': is_logged_in})
 
 
 def login_view(request):
@@ -41,7 +45,7 @@ def pacman(request):
     Returns the pacman.html
     """
     if request.user.is_authenticated:
-        return render(request, 'pacman.html', {})
+        return render(request, 'pacman.html', {'loggedIn': True})
     return redirect('login')
 
 
@@ -59,20 +63,26 @@ def profile(request):
 
     high_scores = Score.objects.order_by('-score')[:3]
 
-    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores})
+    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores, 'loggedIn': True})
 
 
 def registration(request):
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if not form.is_valid():
-            return render(request, 'registration.html', {'form': form, 'errors': form.errors})
+            return render(request, 'registration.html', {'form': form, 'errors': form.errors, 'loggedIn': False})
 
         user = form.save()
         login(request, user)
         return redirect('pacman')
     form = NewUserForm()
-    return render(request, 'registration.html', {'form': form})
+    return render(request, 'registration.html', {'form': form, 'loggedIn': False})
+
+
+def logout_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+    return redirect('index')
 
 
 class HighScore(APIView):

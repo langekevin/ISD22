@@ -11,17 +11,22 @@
 .btn-color:hover {
     color: blue;
 }
-ul.dropdown-menu {
+.dropdown-menu {
+    display: none;
     background-color: black;
     border-color: yellow;
 }
-a.dropdown-item {
+.dropdown-item {
+    display: block;
     color: yellow;
     font-size: 20px;
 }
-a.dropdown-item:hover {
+.dropdown-item:hover {
     background-color: transparent;
     color: blue;
+}
+.show {
+    display: block;
 }
 
 /* Profile */

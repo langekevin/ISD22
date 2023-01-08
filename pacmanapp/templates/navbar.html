@@ -1,13 +1,29 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-<div class="dropdown">
-  <button class="dropdown-toggle btn-color" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-    PACMAN
-  </button>
-  <ul class="dropdown-menu">
-    <li><a class="dropdown-item" href="pacman">PLAY</a></li>
-    <li><a class="dropdown-item" href="profile">PROFILE</a></li>
-    <li><a class="dropdown-item" href="">LOGIN</a></li>
-    <li><a class="dropdown-item" href="registration">REGISTRATION</a></li>
-  </ul>
-</div>
+  <div class="dd">
+    <button class="custom-dropdown-toggle btn-color" type="button" onclick="openDropdown()">PACMAN</button>
+    <ul id="custom-dropdown" class="dropdown-menu">
+      {% if loggedIn %}
+        <li><a class="dropdown-item" href="pacman">PLAY</a></li>
+        <li><a class="dropdown-item" href="profile">PROFILE</a></li>
+        <li><a class="dropdown-item" href="logout">LOGOUT</a></li>
+      {% else %}
+        <li><a class="dropdown-item" href="">LOGIN</a></li>
+      {% endif %}
+    </ul>
+  </div>
 </nav>
+
+<script type="application/javascript">
+  function openDropdown() {
+    document.getElementById("custom-dropdown").classList.toggle("show");
+  }
+
+  window.onclick = function(event) {
+    if (!event.target.classList.contains("custom-dropdown-toggle")) {
+      let dropdownMenu = document.getElementById("custom-dropdown");
+      if (dropdownMenu.classList.contains("show")) {
+        dropdownMenu.classList.remove("show");
+      }
+    }
+  }
+</script>
