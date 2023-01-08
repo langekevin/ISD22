@@ -18,10 +18,10 @@ ISD22 Project - Pacman
 
 # Task breakdown
 
-Anastassiya: profile page
-Tobias Thomé: hosting and documentation
-Gian-Luca Frisch: login and registration pages
-Kevin Lange: pacman game
+- Anastassiya: profile page
+- Tobias Thomé: hosting and documentation
+- Gian-Luca Frisch: login and registration pages
+- Kevin Lange: pacman game
 
 # How can I get the code?
 
