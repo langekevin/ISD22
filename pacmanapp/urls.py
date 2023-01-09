@@ -7,5 +7,6 @@ urlpatterns = [
     path('pacman', views.pacman, name='pacman'),
     path('profile', views.profile, name='profile'),
     path('registration', views.registration, name='registration'),
-    path('highscore', views.HighScore.as_view(), name='highscore')
+    path('highscore', views.HighScore.as_view(), name='highscore'),
+    path('logout', views.logout_view, name='logout')
 ]
