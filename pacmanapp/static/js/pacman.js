@@ -8,6 +8,12 @@ window.addEventListener("load", () => {
     // Resizing
     const container = document.querySelector("#pacman-container");
     let size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 30;
+    let sizeY = container.offsetHeight;
+
+    if (size * 33 + 75 > sizeY) {
+        size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 40;
+    }
+
     canvas.setAttribute("width", size * 30 + "px");
     canvas.setAttribute("height", size * 33 + 75 + "px");
 
@@ -31,9 +37,11 @@ class Map {
         }
         this.pizzaImage = new Image();
         this.cakeImage = new Image();
+        this.pizzaBigImage = new Image();
 
         this.pizzaImage.src = "static/images/pizza.svg";
         this.cakeImage.src = "static/images/cake.svg";
+        this.pizzaBigImage.src = "static/images/pizza_big.svg";
     }
 
     drawPills(ctx) {
@@ -123,10 +131,10 @@ class Map {
         ctx.font = "bold 24px Courier New";
         ctx.fillStyle = "#FFFFFF";
         ctx.textAlign = "center";
-        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 5);
-        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 5);
-        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 5);
-        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 5);
+        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 7);
+        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 12);
+        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 7);
+        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 12);
     }
 
     /**
@@ -137,12 +145,13 @@ class Map {
     drawLifes(ctx, nbLifes = 3) {
         ctx.fillStyle = "#FFFF00";
         for (let i = 0; i < nbLifes; i++) {
-            ctx.fillRect(
+            ctx.drawImage(
+                this.pizzaBigImage,
                 2 * (this.blockSize + this.blockSize * i),
                 35 * this.blockSize,
-                10,
-                10
-            );
+                25,
+                25
+            )
         }
     }
 
