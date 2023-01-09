@@ -24,6 +24,9 @@ def index(request):
 
 
 def login_view(request):
+    """
+    Handles the login process for a user.
+    """
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -67,6 +70,13 @@ def profile(request):
 
 
 def registration(request):
+    """
+    View for registering a user. Creates the NewUserForm and renders the template for a GET
+    request and registers the user on a POST.
+
+    :param request:
+    :return:
+    """
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if not form.is_valid():
