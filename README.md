@@ -66,196 +66,90 @@ python manage.py runserver
 
 # Hosting
 
-How the Website ist hosted with AWS EC2, Ubuntu and Apache2.
+How the Website ist hosted on PythonAnywhere.
+A virtualenv is used and we have a copy of our code on PythonAnywhere which can be edited and browsed and commited to version control.
+First create an PythonAnywhere Account.
 
-1. **Set up an Instance**
-	- Go to the AWS Management Console and log in to your AWS account.
-	- Navigate to the EC2 dashboard.
-	- Click the "Launch Instance" button.
-	- Name the instance.
-	- Select an Ubuntu AMI.
-	- Choose an instance type (here we use the free tier).
-	- Create and/or choose a new key pair. (.ppk) **Keep it safe!**
-	- Configure Security Group
-		- Add Custom TCP-Rule; with Port Range 8000 (Django); Source 0.0.0.0/0 ::0 (every computer can access)
-		- Add HTTP; Port Range 80; Source 0.0.0.0/0 ::0 (every computer can access)
-		- Add HTTPS; Port Range 422; Source 0.0.0.0/0 ::0 (every computer can access) 
-	- Click the "Launch" button, and then launch the instance.
+1. **Code upload to PythonAnywhere**
+	Clone the Django project from GitHub
+	```bash
+	$ git clone https://github.com/langekevin/ISD22.git
+	```
 
-2. **Elastic IP**
-	- Navigate to the EC2 Tab "Elasitic IP".
-	- Generate an Elastic IP.
-	- Associate Elastiv IP to the instance.
+2. **Creat virtualenv, install Django + other requirements**
+	```bash
+	$ mkvirtualenv --python=/usr/bin/python3.10 pacman-virtulenv
+	(pacman-virtulenv)$ pip install django
+	(pacman-virtulenv)$ pip install -r requirements.txt
+	```
 
-3. **Recommended: Connect to EC2**
-	- Use PuTTY (Windows) as a Terminal Program. Or use the browser version in EC2.
-	- Use WinSCP (Windows) to transfer files directly into the instance.
-	- You need the public IP (Elastic IP).
-	- and the private key file (.ppk). Place it into Autentification (SSH-Authenification).
-	- Username "ubuntu"
-
-4. **Install Apache**
-	Apache2 and mod_wsgi on your EC2 instance:
-	```bash
-	sudo apt update
-	sudo apt install apache2 libapache2-mod-wsgi-py3
-
-	# Start the server and check with the public IP
-	sudo service apache2 start
-	```
-	Necessary commands for Apache:
-	```bash
-	sudo service apache2 start
-	sudo service apache2 stop
-	sudo service apache2 restart
-	```
-5. **Upload Project**
-	Drag and Drop with/in WinSCP.
-	(Everything in ISD22-main in an additional folder 'PacmanProject')
-
-6. **Install Django*
-	1. Check the python version.
-	```bash
-	python3
-	# output: installed pythen version (3.10.6).
-	exit()
-	```
-	2. Install pip. To get python packages like Django, Pandas, ... And install Django.
-	```bash
-	sudo apt update
-	sudo apt install python3-pip
-	# check the version:
-	pip3 --version
-	# output: pip 22.0.2 from /usr/lib/python3/dist-packages/pip (python 3.10)
-	pip3 install django
-	```
-	3. Install virtual inviroment.
-	```bash
-	sudo apt install python3-venv
-	```
-	4. Create and open virtual invirement (venv).
-	First open the Django project. Afterwards create the venv in the Django and open it. So it can be activated.
-	```bash
-	ls
-	# output: ISD22-main
-	cd ISD22-main
-	python3 -m venv pacman_env
-	ls
-	ls pacman_env/
-	ls pacman_env/bin/
-	source pacman_env/bin/activate
-	```
-	5. Changes in settings.py 
-	```bash
-	cd PacmanProject/
-	ls
-	# Output: LICENSE  README.md  Untitled.ipynb  manage.py  pacman  pacmanapp  requirements.txt
-	vi pacman/settings.py
-	```
-	Make the change in ALOWED_HOSTS - fill in the public IP (Elastic IP)
-	go out of the change with the command: `:wq`
-	
-	6. Check if it works.
-	```bash
-	python3.10 manage.py runserver 0.0.0.0:8000
-	```
-	The website should be seen with your publicIP and 8000 in the end.
-
-7. **Directories**
-	List the Django project's name and path, application name and path, environment's location path, and WSGI file path.
-	
+3. **Setting up web app and WSGI file**
+	1. Save the Directories:
+	List the Django project's name and path, manage.py path
 	```<txt>
 	Directories
-	
-	Folder Name - /home/ubuntu/ISD22-main
-	
-	Project Name - PacmanProject
-	Project Path - /home/ubuntu/ISD22-main/PacmanProject
 
-	Application Path - pacmanapp
-	Application Path - /home/ubuntu/ISD22-main/PacmanProject/pacmanapp
-
-	Environment Folder Path - /home/ubuntu/ISD-main/pacman_env
-	Wsgi File Path - /home/ubuntu/ISD22-main/PackmanProject/pacman/wsgi.py
-
+	manage.py folder path - /home/gourmetpacman/isd22
+	Project Name - pacman
+	Project Path - /home/gourmetpacman/isd22/pacman
+	virtualenv - pacman-virtulenv
 	```
-8. **Add Static Files variables in Settings.py**
-	Django provides a mechanism for collecting static files into one place so that they can be served easily.
-	Open `Settings.py` using the console or WinSCP.
-	`vi ISD22-main/PacmanProject/pacman/settings.py`
-	```<python>
-	# Add below code in settings.py file
-	import os 
-
-	STATIC_URL = '/static/' 
-	STATIC_ROOT = os.path.join(BASE_DIR, "static/") 
-	STATICFILES=[STATIC_ROOT]
-	```
-	Leave the file with `:wq`
-
-9. **Migrate Django and Collect Static**
-	Use the `makemigration`, `migrate` and `collectstatic` commands.
-	```console
-	source ISD22-main/pacman_env/bin/activate
-	python3 ISD22-main/PacmanProject/manage.py makemigrations
-	python3 ISD22-main/PacmanProject/manage.py migrate
-	python3 ISD22-main/PacmanProject/manage.py collectstatic
-	```
-
-10. **Change Permission and ownership
-	Change the permissions of the SQLite file. Also, change the ownership of the Django project folders.
-
-	The following commands will change the permission and ownership of the files and folders.
+	2. Create a Web app with Manual Config
+	- go to the Web tab and create a new web app, 
+	- choose the "Manual Configuration" option with the right version of Python (same as in venv).
+	3. Enter virtualenv name
+	- enter the name of the virtualenv `pacman-virtulenv` in the Virtualenv section on the web tab
+	- click "OK"
+	4. Edit WSGI file
+	Don't change the automatically created file `wsgi.py`. PythonAnywhere ignors this.
+	Edit the WSGI file that has a link inside the "Code" section of the Web tab.
+	- Click on the WSGI file link, an editor will open where you can change it.
+	- Delete everything except the Django section and then uncomment that section. 
+	  Your WSGI file should look like this:
 	```bash
-	chmod 664 ~/ISD22-main/PacmanProject/db.sqlite3
+	# +++++++++++ DJANGO +++++++++++
+	# To use your own Django app use code like this:
+	import os
+	import sys
 
-	sudo chown :www-data ~/ISD22-main/PacmanProject/db.sqlite3
-	sudo chown :www-data ~/ISD22-main/PacmanProject
-	sudo chown :www-data ~/ISD22-main/PacmanProject/pacman
+	# assuming your Django settings file is at '/home/gourmetpacman/isd22/pacman/settings.py'
+	path = '/home/gourmetpacman/isd22'
+	if path not in sys.path:
+	    sys.path.insert(0, path)
+
+	os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
+
+	## Uncomment the lines below depending on your Django version
+	###### then, for Django >=1.5:
+	from django.core.wsgi import get_wsgi_application
+	application = get_wsgi_application()
+	###### or, for older Django <=1.4
+	#import django.core.handlers.wsgi
+	#application = django.core.handlers.wsgi.WSGIHandler()
+	```
+	5. save the file and reload the domain.
 	
-	deactivate
-	```
+4.**Database setup**
+	- Use the Consoles tab, start a bash console, navigate with `cd` to the directory where the Django project's manage.py is located.
+	- run:
+		```bash
+		./manage.py migrate
+		```
+	- The website should be live. Just without any design.
+5. **Set up static file**
+	To get some design into the website we have to set up the static files.
 
-11. **Changes in Apache Config File**
-	A few changes in the `000-default.conf` file. Before that, make a backup. 
-	```console
-	# Go to the location - 
-	cd /etc/apache2/sites-available
-
-	# Take a backup of file
-	sudo cp 000-default.conf 000-default.conf_backup
-
-	# Open conf file using Vi
-	sudo vi 000-default.conf
-	```
-
-	Add the following code to the file:
-	```xml
-	Alias /static /home/ubuntu/ISD22-main/PacmanProject/static
-
-	<Directory /home/ubuntu/ISD22-main/PacmanProject/static>
-		Require all granted
-	</Directory>
-	
-	<Directory /home/ubuntu/ISD22-main/PacmanProject/pacman>
-		<Files wsgi.py>
-			Require all granted
-		</Files>
-	</Directory>
-
-	WSGIPassAuthorization On
-	WSGIDaemonProcess PacmanProject python-path=/home/ubuntu/ISD22-main/PacmanProject/ python-home=/home/ubuntu/ISD22-main/pacman_env
-	WSGIProcessGroup PacmanProject
-	WSGIScriptAlias / /home/ubuntu/ISD22-main/PackmanProject/pacman/wsgi.py
-	```
-	Make changes of the path if neccessary.
-
-12. **Enable the Site and wsgi mod in Apache**
-	Enable the conf file using `a2ensite`.
-	```bash
-	cd /etc/apache2/sites-available/
-	
-	sudo a2ensite 000-default.conf
-	```
-	use `sudo a2enmod wsgi`
-	and then restart the server with `sudo service apache2 restart`.
+	1. Set STATIC_ROOT in settings.py
+		With the STATIC_ROOT variable in settings.py we define the single folder we want to collect all our static files.
+		```bash
+		STATIC_ROOT = "/home/gourmetpacman/isd22/static"
+	2. Collectstatic
+		With `python3 manage.py collectstatic` it collects all static files from the pacmanapp, and copies them into `STATIC_ROOT`.
+	3. Set up a static files mapping
+		Now, set up a static files mapping to get the web server to serve out the static files.
+			- Go to the Web tab on the PythonAnywhere dashboard
+			- Go to the Static Files section
+			- Enter the same URL as STATIC_URL in the url section (/static/)
+			- Enter the path from STATIC_ROOT into the path section (/home/gourmetpacman/isd22/static)
+		Hit Reload and test the static file mapping by going to retrieve a known static file.
+6. **Play the Game**
