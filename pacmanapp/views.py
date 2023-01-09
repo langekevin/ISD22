@@ -1,21 +1,26 @@
+"""
+File for the endpoint definitions
+"""
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import User
-from .forms import NewUserForm
-from .models import Score
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from .forms import NewUserForm
+from .models import Score
 
 
 def index(request):
     """
     Returns the index.html for testing purposes
     """
+    is_logged_in = False
+    if request.user.is_authenticated:
+        is_logged_in = True
+    
     form = AuthenticationForm()
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'index.html', {'form': form, 'loggedIn': is_logged_in})
 
 
 def login_view(request):
@@ -40,7 +45,7 @@ def pacman(request):
     Returns the pacman.html
     """
     if request.user.is_authenticated:
-        return render(request, 'pacman.html', {})
+        return render(request, 'pacman.html', {'loggedIn': True})
     return redirect('login')
 
 
@@ -58,29 +63,68 @@ def profile(request):
 
     high_scores = Score.objects.order_by('-score')[:3]
 
-    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores})
+    return render(request, 'profile.html', {'score': score, 'high_scores': high_scores, 'loggedIn': True})
 
 
 def registration(request):
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if not form.is_valid():
-            return render(request, 'registration.html', {'form': form, 'errors': form.errors})
+            return render(request, 'registration.html', {'form': form, 'errors': form.errors, 'loggedIn': False})
 
         user = form.save()
         login(request, user)
         return redirect('pacman')
     form = NewUserForm()
-    return render(request, 'registration.html', {'form': form})
+    return render(request, 'registration.html', {'form': form, 'loggedIn': False})
+
+
+def logout_view(request):
+    if request.user.is_authenticated:
+        logout(request)
+    return redirect('index')
 
 
 class HighScore(APIView):
-    
+    """
+    Endpoints for managing high scores
+    """
+
     def get(self, request):
-        # TODO: Get the high score of the player
-        data = {'highScore': 10290}
-        return Response(data, status=200)
-    
+        """Endpoint for get request for requesting the current high score of
+        a player if the high score is available.
+        """
+        if request.user.is_authenticated:
+            user = request.user
+            score = Score.objects.filter(player=user).first()
+            high_score = 0
+            if score:
+                high_score = score.score
+            data = {'highScore': high_score}
+            return Response(data, status=200)
+        return Response(status=401)
+
     def post(self, request):
-        # TODO: Save the new high score of the user if it is a high score
-        return Response(status=201)
+        """Endpoint for post request after playing pacman for updating the
+        score of an user if the score exceeds the current high score.
+        """
+        if request.user.is_authenticated:
+            data = request.data
+            new_score = 0
+            try:
+                new_score = int(data.get("score"))
+            except:
+                pass
+
+            if not new_score:
+                return Response("Score was not found in the request", status=status.HTTP_400_BAD_REQUEST)
+
+            user = request.user
+            score = Score.objects.filter(player=user).first()
+            if not score:
+                Score.objects.create(player=user, score=new_score)
+            elif score.score < new_score:
+                score.score = new_score
+                score.save()
+
+        return Response(status=status.HTTP_201_CREATED)

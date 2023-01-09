@@ -8,6 +8,12 @@ window.addEventListener("load", () => {
     // Resizing
     const container = document.querySelector("#pacman-container");
     let size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 30;
+    let sizeY = container.offsetHeight;
+
+    if (size * 33 + 75 > sizeY) {
+        size = (container.offsetWidth - CANVAS_OFFSET_X * 2) / 40;
+    }
+
     canvas.setAttribute("width", size * 30 + "px");
     canvas.setAttribute("height", size * 33 + 75 + "px");
 
@@ -25,12 +31,17 @@ window.addEventListener("load", () => {
 class Map {
     constructor(blockSize) {
         this.blockSize = blockSize;
-        this.mapArray = MAP_ARRAY;
+        this.mapArray = [];
+        for (let i = 0; i < MAP_ARRAY.length; i++) {
+            this.mapArray[i] = MAP_ARRAY[i].slice();
+        }
         this.pizzaImage = new Image();
         this.cakeImage = new Image();
+        this.pizzaBigImage = new Image();
 
         this.pizzaImage.src = "static/images/pizza.svg";
         this.cakeImage.src = "static/images/cake.svg";
+        this.pizzaBigImage.src = "static/images/pizza_big.svg";
     }
 
     drawPills(ctx) {
@@ -120,10 +131,10 @@ class Map {
         ctx.font = "bold 24px Courier New";
         ctx.fillStyle = "#FFFFFF";
         ctx.textAlign = "center";
-        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 5);
-        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 5);
-        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 5);
-        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 5);
+        ctx.fillText("SCORE", this.blockSize * 5, this.blockSize + 7);
+        ctx.fillText(score, this.blockSize * 5, this.blockSize * 2 + 12);
+        ctx.fillText("HIGH SCORE", this.blockSize * 20, this.blockSize + 7);
+        ctx.fillText(highScore, this.blockSize * 20, this.blockSize * 2 + 12);
     }
 
     /**
@@ -134,12 +145,13 @@ class Map {
     drawLifes(ctx, nbLifes = 3) {
         ctx.fillStyle = "#FFFF00";
         for (let i = 0; i < nbLifes; i++) {
-            ctx.fillRect(
+            ctx.drawImage(
+                this.pizzaBigImage,
                 2 * (this.blockSize + this.blockSize * i),
                 35 * this.blockSize,
-                10,
-                10
-            );
+                25,
+                25
+            )
         }
     }
 
@@ -187,6 +199,21 @@ class Map {
             return MAP_ELEMENTS.BIG_ITEM;
         }
         return 0;
+    }
+
+    /**
+     * Method checks if there is still an item left on the map.
+     * @returns{bool} True if an item is left on the map, else false
+     */
+    isItemLeft() {
+        for (let i = 0; i < this.mapArray.length; i++) {
+            for (let j = 0; j < this.mapArray[i].length; j++) {
+                if (this.mapArray[i][j] === MAP_ELEMENTS.ITEM || this.mapArray[i][j] === MAP_ELEMENTS.BIG_ITEM) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 
@@ -275,14 +302,17 @@ class Player {
      * @param{number} blockSize Size of one Grid
      */
     constructor(blockSize) {
-        this.position = new Position(14, 24);
+        this.position = new Position(14.5, 24);
         this.direction = KEYS.A;
         this.eaten = false;
         this.due = null;
-        this.lives = 1;
+        this.lives = 3;
         this.score = 0;
         this.blockSize = blockSize;
         this.highScore = 0;
+        this.newLifeAt = 10000;
+        this.hasJustEaten = 0;
+        this.keyPressTimer = Date.now();
     }
 
     /**
@@ -291,6 +321,14 @@ class Player {
      */
     addToScore(number) {
         this.score += number * 10;
+        if (this.score >= this.highScore) {
+            this.highScore = this.score;
+        }
+        if (this.score > this.newLifeAt) {
+            this.lives += 1;
+            this.newLifeAt += 10000;
+        }
+        this.hasJustEaten = 0;
     }
 
     /**
@@ -302,11 +340,17 @@ class Player {
 
     /**
      * Calculates the new position of the player.
-     * @returns{{new: Position, old: Position}}
+     * @returns{bool} Information if the player is moving or not
      */
     move() {
+        let movingPossible = false;
         let newPosition = null;
         let oldPosition = this.position;
+
+        // Reset the due if too much time has passed
+        if (this.due && this.keyPressTimer + 0.3 * 1000 < Date.now()) {
+            this.due = null;
+        }
 
         if (this.due && this.due !== this.direction) {
             newPosition = this.tryChangeDirection();
@@ -316,11 +360,14 @@ class Player {
             newPosition = this.tryMoveIntoDirection(oldPosition);
         }
 
+        // Check if moving is possible
+        movingPossible = newPosition === oldPosition;
+
         // Correct position if player moves out of the map
         newPosition = this.getsOutOfMap(newPosition);
 
         this.position = newPosition;
-        return { new: this.position, old: oldPosition };
+        return movingPossible;
     }
 
     /**
@@ -414,13 +461,57 @@ class Player {
      * @param{object} ctx
      */
     draw(ctx) {
-        ctx.fillStyle = "#ff9100";
-        ctx.fillRect(
-            (this.position.x + 0.25) * this.blockSize,
-            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
-            10,
-            10
+        ctx.fillStyle = "#ffff00";
+
+        let arcStart = 0.25 * Math.PI;
+        let arcEnd = 1.75 * Math.PI;
+
+        if (this.hasJustEaten < 3) {
+            // Decrease the angle if pacman has just eaten an item for the
+            // first 3 times the canvas gets rendered
+            arcStart = 0.05 * Math.PI;
+            arcEnd = 1.95 * Math.PI;
+            this.hasJustEaten += 1;
+        }
+
+        let r = this.blockSize * 0.75;
+
+        let startingPointX = (this.position.x + 0.5) * this.blockSize,
+            startingPointY = (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y;
+
+        if (this.direction === KEYS.A) {
+            startingPointX += 5;
+            arcStart += Math.PI;
+            arcEnd += Math.PI;
+        } else if (this.direction === KEYS.D) {
+            startingPointX -= 5;
+        } else if (this.direction === KEYS.W) {
+            startingPointY += 5;
+            arcStart = (arcStart + Math.PI * 3 / 2) % (2 * Math.PI);
+            arcEnd = (arcEnd + Math.PI * 3 / 2) % (2 * Math.PI);
+        } else if (this.direction === KEYS.S) {
+            startingPointY -= 5;
+            arcStart = (arcStart + Math.PI / 2) % (2 * Math.PI);
+            arcEnd = (arcEnd + Math.PI / 2) % (2 * Math.PI);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(startingPointX, startingPointY);
+
+        ctx.lineTo(
+            (this.position.x + 0.5) * this.blockSize + Math.cos(arcStart) * r,
+            (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y + Math.sin(arcStart) * r
         );
+        ctx.arc(
+            (this.position.x + 0.5) * this.blockSize,
+            (this.position.y + 0.5) * this.blockSize + CANVAS_OFFSET_Y,
+            r,
+            arcStart,
+            arcEnd,
+            false
+        );
+        ctx.lineTo(startingPointX, startingPointY);
+        ctx.fill();
     }
 
     /**
@@ -431,12 +522,16 @@ class Player {
     keyDown(e) {
         if (e.keyCode === KEYS.A || e.keyCode === KEYS.LEFT) {
             this.due = KEYS.A;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.S || e.keyCode === KEYS.DOWN) {
             this.due = KEYS.S;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.D || e.keyCode === KEYS.RIGHT) {
             this.due = KEYS.D;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.W || e.keyCode === KEYS.UP) {
             this.due = KEYS.W;
+            this.keyPressTimer = Date.now();
         } else if (e.keyCode === KEYS.N) {
             this.due = KEYS.N;
         }
@@ -460,6 +555,7 @@ class Ghost {
         this.homePosition = ghostObject.homePosition;
         this.blockSize = blockSize;
         this.isEatable = false;
+        this.goHome = false;
         this.isChasingMode = false;
         this.timer = Date.now();
         this.duration = 0;
@@ -472,6 +568,10 @@ class Ghost {
         this.hasStarted = false;
         this.eatenDotsCounter = 0;
         this.eatenDotsMin = ghostObject.eatenDotsMin;
+        this.ghostSpeed = 0.1;
+        this.waiting = false;
+        this.ghostStateTimer = Date.now();
+        this.showFirstWaves = false;
     }
 
     /**
@@ -483,8 +583,30 @@ class Ghost {
     /**
      * Toggles the is eatable state of the ghost.
      */
-    toggleEatable() {
-        this.isEatable = !this.isEatable;
+    makeEatable() {
+        if (this.hasStarted != this.goHome){
+            // Make ghosts eatable
+            this.isEatable = true;
+
+            // Store the remaining duration of the previous mode
+            this.duration = this.duration - (Date.now() - this.timer) / 1000;
+
+            // Decrease the ghost speed by 50%
+            this.ghostSpeed = 0.05;
+
+            // Set the timer for eatable duration
+            this.timer = Date.now();
+
+            if (this.direction === KEYS.A) {
+                this.direction = KEYS.D;
+            } else if (this.direction === KEYS.D) {
+                this.direction = KEYS.A;
+            } else if (this.direction === KEYS.W) {
+                this.direction = KEYS.S;
+            } else if (this.direction === KEYS.S) {
+                this.direction = KEYS.W;
+            }
+        }
     }
 
     getDistanceToTarget(x, y) {
@@ -493,6 +615,7 @@ class Ghost {
 
     startGhost() {
         this.hasStarted = true;
+        this.isEatable = false;
         this.mode = this.movements[0].type;
         this.duration = this.movements[0].duration;
         this.movements.shift();
@@ -509,6 +632,43 @@ class Ghost {
             return true;
         }
         return false;
+    }
+
+    wasEaten() {
+        this.goHome = true;
+        this.ghostSpeed = 0.25;
+        this.targetPosition = new Position(14, 12);
+
+        const x = this.position.asInteger(0);
+        const y = this.position.asInteger(1);
+
+        this.position.x = x;
+        this.position.y = y;
+
+        let minDistance = Number.MAX_VALUE;
+            let bestDecision = null;
+
+            [KEYS.A, KEYS.S, KEYS.D, KEYS.W].forEach(direction => {
+                if (!this.isWallInDirection(x, y, direction)) { 
+                    let newX = x, newY = y;
+                    if (direction === KEYS.A) {
+                        newX = Math.max(x - 1, 0);
+                    } else if (direction === KEYS.S) {
+                        newY++;
+                    } else if (direction === KEYS.D) {
+                        newX = Math.min(x + 1, GHOST_ARRAY[y].length);
+                    } else if (direction === KEYS.W) {
+                        newY--;
+                    }
+
+                    let distance = this.getDistanceToTarget(newX, newY);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestDecision = direction;
+                    }
+                }
+            });
+            this.direction = bestDecision;
     }
 
     /**
@@ -556,7 +716,16 @@ class Ghost {
             this.targetPosition = playerPosition;
         }
 
-        if (this.timer + this.duration * 1000 < Date.now() && this.movements.length > 0) {
+        if (this.isEatable) {
+            if (this.timer + 10 * 1000 < Date.now()) {
+                console.log(`Ghost ${this.name} is no longer eatable`);
+                this.isEatable = false;
+                this.timer = Date.now();
+                this.ghostSpeed = 0.1;
+                this.position.x = Math.round(this.position.x, 1);
+                this.position.y = Math.round(this.position.y, 1);
+            }
+        } else if (this.timer + this.duration * 1000 < Date.now() && this.movements.length > 0) {
             this.duration = this.movements[0].duration;
             this.mode = this.movements[0].type;
             this.movements.shift();
@@ -567,11 +736,37 @@ class Ghost {
     move(playerPosition) {
         if (!this.hasStarted) {
             return;
+        } else if (this.waiting) {
+            if (Date.now() > this.timer + 3 * 1000) {
+                this.waiting = false;
+            } else {
+                return;
+            }
         }
+
         let newPosition = null;
 
-        this.checkCurrentMode(playerPosition);
-        this.correctDirection();
+        if (this.goHome && this.position.isOnSquare()) {
+            const x = this.position.asInteger(0);
+            const y = this.position.asInteger(1);
+
+            if (this.getDistanceToTarget(x, y) < 0.001 && GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.GHOST_HOUSE) {
+                this.ghostSpeed = 0.1;
+                this.goHome = false;
+                this.isEatable = false;
+                this.timer = Date.now();
+                this.position.x = Math.round(this.position.x, 1);
+                this.position.y = Math.round(this.position.y, 1);
+                this.waiting = true;
+            }
+        }
+
+        if (!this.goHome) {
+            this.checkCurrentMode(playerPosition);
+            this.correctDirection();
+        } else {
+            this.findFastestWayHome();
+        }
 
         newPosition = this.getNextPosition(this.direction);
         // Check if ghost goes out of the map
@@ -580,69 +775,176 @@ class Ghost {
         this.position = newPosition;
     }
 
-    correctDirection() {
-        // Check if ghost is on a whole square
-        if (this.position.isOnSquare()) {
-            // check if it is an intersection
-            const x = this.position.asInteger(0);
-            const y = this.position.asInteger(1);
+    findFastestWayHome() {
+        if (!this.position.isOnSquare()) {
+            return;
+        }
+        
+        const x = this.position.asInteger(0);
+        const y = this.position.asInteger(1);
+        if (this.getDistanceToTarget(x, y) < 0.001 && GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.PATH) {
+            this.direction = KEYS.S;
+            this.targetPosition = new Position(13, 15);
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL ||GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
+            let minDistance = Number.MAX_VALUE;
+            let bestDecision = null;
 
-            if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL) {
-                // Just a normal intersection.
-                // Choose the direction to go.
-                this.direction = this.getBestDecision(x, y);
-            } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
-                // One of the special four intersections with limited options
-                // Choose the direction
-                if (this.direction === KEYS.S) {
-                    // TODO: Implement the decision which direction should be used in order to continue
-                    this.direction = KEYS.A;
+            [KEYS.A, KEYS.S, KEYS.D, KEYS.W].forEach(direction => {
+                if (!this.isWallInDirection(x, y, direction, true)) { 
+                    let newX = x, newY = y;
+                    if (direction === KEYS.A) {
+                        newX = Math.max(x - 1, 0);
+                    } else if (direction === KEYS.S) {
+                        newY++;
+                    } else if (direction === KEYS.D) {
+                        newX = Math.min(x + 1, GHOST_ARRAY[y].length);
+                    } else if (direction === KEYS.W) {
+                        newY--;
+                    }
+
+                    let distance = this.getDistanceToTarget(newX, newY);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestDecision = direction;
+                    }
                 }
-            } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.GHOST_HOUSE) {
-                if (x < 14) {
-                    this.direction = KEYS.D;
-                } else if (x > 14) {
-                    this.direction = KEYS.A;
-                } else {
-                    this.direction = KEYS.W;
+            });
+            this.direction = bestDecision;
+        } else {
+            if (this.direction === KEYS.A) {
+                if (GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.S;
+                    } else {
+                        this.direction = KEYS.W;
+                    }
+                }
+            } else if (this.direction === KEYS.S) {
+                if (GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.D;
+                    } else {
+                        this.direction = KEYS.A;
+                    }
+                }
+            } else if (this.direction === KEYS.D) {
+                if (GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.S;
+                    } else {
+                        this.direction = KEYS.W;
+                    }
                 }
             } else {
-                // Not on an intersection
-                // Check if a move into the current direction is still possible and change direction if not
-                if (this.direction === KEYS.A) {
-                    if (GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL) {
-                        if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
-                            this.direction = KEYS.S;
-                        } else {
-                            this.direction = KEYS.W;
-                        }
-                    }
-                } else if (this.direction === KEYS.S) {
-                    if (GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL) {
-                        if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
-                            this.direction = KEYS.D;
-                        } else {
-                            this.direction = KEYS.A;
-                        }
-                    }
-                } else if (this.direction === KEYS.D) {
-                    if (GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL) {
-                        if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
-                            this.direction = KEYS.S;
-                        } else {
-                            this.direction = KEYS.W;
-                        }
-                    }
-                } else {
-                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
-                        if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
-                            this.direction = KEYS.D;
-                        } else {
-                            this.direction = KEYS.A;
-                        }
+                if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.D;
+                    } else {
+                        this.direction = KEYS.A;
                     }
                 }
             }
+        }
+        return true;
+    }
+
+    correctDirection() {
+        // Check if ghost is on a whole square
+        if (!this.position.isOnSquare()) {
+            return;
+        }
+
+        const x = this.position.asInteger(0);
+        const y = this.position.asInteger(1);
+
+        if (this.isEatable) {
+            // Chose the direction randomly
+            let possibleDirections = [];
+            if (!this.isWallInDirection(x, y, KEYS.A) && this.direction !== KEYS.D) {
+                possibleDirections.push(KEYS.A);
+            }
+            if (!this.isWallInDirection(x, y, KEYS.D) && this.direction !== KEYS.A) {
+                possibleDirections.push(KEYS.D);
+            }
+            if (!this.isWallInDirection(x, y, KEYS.W) && this.direction !== KEYS.S) {
+                possibleDirections.push(KEYS.W);
+            }
+            if (!this.isWallInDirection(x, y, KEYS.S) && this.direction !== KEYS.W) {
+                possibleDirections.push(KEYS.S);
+            }
+
+            this.direction = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
+
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.NORMAL || GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.IGNORE_WHEN_EATEN) {
+            // Just a normal intersection.
+            // Choose the direction to go.
+            this.direction = this.getBestDecision(x, y);
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.SPECIAL) {
+            // One of the special four intersections with limited options
+            // Choose the direction
+            if (this.direction === KEYS.S) {
+                // TODO: Implement the decision which direction should be used in order to continue
+                this.direction = KEYS.A;
+            }
+        } else if (GHOST_ARRAY[y][x] === GHOST_INTERSECTIONS.GHOST_HOUSE) {
+            if (x < 14) {
+                this.direction = KEYS.D;
+            } else if (x > 14) {
+                this.direction = KEYS.A;
+            } else {
+                this.direction = KEYS.W;
+            }
+        } else {
+            // Not on an intersection
+            // Check if a move into the current direction is still possible and change direction if not
+            if (this.direction === KEYS.A) {
+                if (GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.S;
+                    } else {
+                        this.direction = KEYS.W;
+                    }
+                }
+            } else if (this.direction === KEYS.S) {
+                if (GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.D;
+                    } else {
+                        this.direction = KEYS.A;
+                    }
+                }
+            } else if (this.direction === KEYS.D) {
+                if (GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.S;
+                    } else {
+                        this.direction = KEYS.W;
+                    }
+                }
+            } else {
+                if (GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL) {
+                    if (GHOST_ARRAY[y][x - 1] === GHOST_INTERSECTIONS.WALL) {
+                        this.direction = KEYS.D;
+                    } else {
+                        this.direction = KEYS.A;
+                    }
+                }
+            }
+        }
+    }
+
+    isWallInDirection(x, y, direction, allowGhostHouse = false) {
+        switch (direction) {
+            case KEYS.A:
+                return GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y][Math.max(x - 1, 0)] === GHOST_INTERSECTIONS.GHOST_HOUSE);
+            case KEYS.S:
+                return GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y + 1][x] === GHOST_INTERSECTIONS.GHOST_HOUSE);
+            case KEYS.D:
+                return GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y][Math.min(x + 1, GHOST_ARRAY[y].length - 1)] === GHOST_INTERSECTIONS.GHOST_HOUSE);
+            case KEYS.W:
+                return GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.WALL || (allowGhostHouse && GHOST_ARRAY[y - 1][x] === GHOST_INTERSECTIONS.GHOST_HOUSE);
+            default:
+                return true;
         }
     }
 
@@ -662,22 +964,142 @@ class Ghost {
 
     getNextPosition(direction) {
         return new Position(
-            this.position.x + ((direction == KEYS.A && -0.1) || (direction == KEYS.D && 0.1) || 0),
-            this.position.y + ((direction == KEYS.W && -0.1) || (direction === KEYS.S && 0.1) || 0)
+            this.position.x + ((direction == KEYS.A && -this.ghostSpeed) || (direction == KEYS.D && this.ghostSpeed) || 0),
+            this.position.y + ((direction == KEYS.W && -this.ghostSpeed) || (direction === KEYS.S && this.ghostSpeed) || 0),
         );
     }
 
     drawGhost(ctx) {
+        // Colors for the ghost if it is eatable
+        let background = "#072A6C";
+        let color = "#FFFFFF";
+        
+        let r = this.blockSize * 0.7,
+            h = this.blockSize * 0.6,
+            x = (this.position.x) * this.blockSize,
+            y = (this.position.y) * this.blockSize + CANVAS_OFFSET_Y,
+            offsetX = -4,
+            offsetY = -2,
+            eyeOffsetX = 0,
+            eyeOffsetY = 0,
+            bottom = y + r + h + offsetY,
+            waveHeight = r / 3;
+
+        if (this.goHome) {
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.ellipse(x + offsetX + 3 * r / 5, y + r + offsetY - 1, 5, 6, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 5, 6, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            if (this.direction === KEYS.A) {
+                eyeOffsetX -= 1;
+            } else if (this.direction === KEYS.D) {
+                eyeOffsetX += 1;
+            } else if (this.direction === KEYS.W) {
+                eyeOffsetY -= 2;
+            } else if (this.direction === KEYS.S) {
+                eyeOffsetY += 2;
+            }
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 3, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+
+            return;
+        }
+
         ctx.fillStyle = this.color;
-        ctx.fillRect(
-            (this.position.x + 0.25) * this.blockSize,
-            (this.position.y + 0.25) * this.blockSize + CANVAS_OFFSET_Y,
-            10,
-            10
-        );
+        if (this.isEatable && this.hasStarted) {
+            let remainingTime = Math.round((10 * 1000 - (Date.now() - this.timer)) / 500);
+            if (remainingTime < 6) {
+                if (remainingTime % 2 === 0) {
+                    background = '#FFFFFF';
+                    color = '#072A6C';
+                }
+            }
+            ctx.fillStyle = background;
+        }
+
+        if (this.ghostStateTimer + 0.15 * 1000 < Date.now()) {
+            this.showFirstWaves = !this.showFirstWaves;
+            this.ghostStateTimer = Date.now();
+        }
+
+
+        ctx.beginPath();
+        ctx.moveTo(x + offsetX, y + r + offsetY);
+        ctx.arc(x + offsetX + r, y + r + offsetY, r, Math.PI, 2 * Math.PI);
+        ctx.lineTo(x + offsetX + r * 2, y + r + h + offsetY);
+        
+        // Wavy things at the bottom
+        if (this.showFirstWaves) {
+            ctx.lineTo(x + offsetX + 17 / 10 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 7 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 3 * r / 5, bottom);
+            ctx.lineTo(x + offsetX + 3 * r / 10, bottom + waveHeight);
+            ctx.lineTo(x + offsetX, y + h + offsetY + r);
+        } else {
+            ctx.lineTo(x + offsetX + r * 2, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 8 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + 34 / 25 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 6 / 5 * r, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 6 / 5 * r, bottom);
+            ctx.lineTo(x + offsetX + 4 * r / 5, bottom);
+            ctx.lineTo(x + offsetX + 4 * r / 5, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 16 * r / 25, bottom + waveHeight);
+            ctx.lineTo(x + offsetX + 2 * r / 5, bottom);
+            ctx.lineTo(x + offsetX, bottom + waveHeight);
+        }
+
+        ctx.lineTo(x + offsetX, y + r + offsetY);
+        ctx.fill();
+
+        if (!this.isEatable) {
+            // Draw the basic eyes
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.ellipse(x + offsetX + 3 * r / 5, y + r + offsetY - 1, 4, 5, 0, 0, 2 * Math.PI);
+            ctx.ellipse(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 4, 5, 0, 0, 2 * Math.PI);
+            ctx.fill();
+
+            let eyeOffsetX = 0, eyeOffsetY = 0;
+            
+            if (this.direction === KEYS.A) {
+                eyeOffsetX -= 1;
+            } else if (this.direction === KEYS.D) {
+                eyeOffsetX += 1;
+            } else if (this.direction === KEYS.W) {
+                eyeOffsetY -= 2;
+            } else if (this.direction === KEYS.S) {
+                eyeOffsetY += 2;
+            }
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 2.5, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r + eyeOffsetX, y + r + offsetY - 1 + eyeOffsetY, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x + offsetX + 3 / 5 * r, y + r + offsetY - 1, 2.5, 0, 2 * Math.PI);
+            ctx.arc(x + offsetX + 7 / 5 * r, y + r + offsetY - 1, 2.5, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + offsetX + 0.8 * r * 2, y + r + offsetY + 3 / 4 * h);
+            ctx.quadraticCurveTo(x + offsetX + 0.5 * r * 2, y + r + offsetY + 3 / 4 * h - 8, x + offsetX + 0.2 * r * 2, y + r + offsetY + 3 / 4 * h);
+            ctx.stroke();
+        }
     }
 
-    atePlayer(playerPosition) {
+    collisionDetected(playerPosition) {
         const distance = Math.sqrt((playerPosition.x - this.position.x) ** 2 + (playerPosition.y - this.position.y) ** 2);
         return distance < 0.5;
     }
@@ -713,13 +1135,16 @@ class Pacman {
         this.currentState = PLAYING_STATES.PLAYING;
         this.activeGhostCounter = 0;
         this.dyingTimer = null;
+        this.playerLevel = 0;
+        this.audio = new PacmanAudio();
+        this.isFrighteningMode = false;
     }
 
     /**
      * Photos per second that will be rendered to the screen.
      * @type {number}
      */
-    static FPS = 40;
+    static FPS = 50;
 
     /**
      * Function prevents default events for key presses if the current state
@@ -741,6 +1166,8 @@ class Pacman {
     keyDown(e) {
         if (e.keyCode === KEYS.N) {
             // Start new game
+            this.audio.intermission.pause();
+            this.audio.beginning.play();
             this.currentState = PLAYING_STATES.COUNT_DOWN;
             this.timer = Date.now();
         } else if (
@@ -794,12 +1221,26 @@ class Pacman {
         this.ctx.fillText("GAME OVER", this.blockSize * 15, this.blockSize * 18);
     }
 
+    drawNextLevel() {
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+
+        this.ctx.font = "bold 32px Courier New";
+        this.ctx.fillStyle = "#FFFFFF";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("NEXT LEVEL", this.canvas.clientWidth / 2, this.canvas.clientHeight / 2 - this.blockSize);
+        this.ctx.fillText(this.playerLevel + 1, this.canvas.clientWidth / 2, this.canvas.clientHeight / 2 + this.blockSize);
+    }
+
     /**
      * Initializes the game by drawing everything on the canvas element.
      */
     init() {
         // Get the high score of the player
         this.getPlayerHighScore();
+
+        // Load the audio files
+        this.audio.loadAudios();
 
         // Initialize the map
         this.map = new Map(this.blockSize);
@@ -814,6 +1255,10 @@ class Pacman {
 
         // Set the current state to countdown
         this.currentState = PLAYING_STATES.INITIALIZING;
+
+        // Play the pacman intermission sound
+        // this.audio.intermission.loop = true;
+        // this.audio.intermission.play();
 
         // Start the main loop
         // document.addEventListener('keydown', this.keyDown, true);
@@ -852,10 +1297,10 @@ class Pacman {
         this.map.drawDescription(this.ctx, this.player.score, this.player.highScore);
         this.map.drawLifes(this.ctx, this.player.lives);
 
+        this.player.draw(this.ctx);
         for (let i = 0; i < this.ghosts.length; i++) {
             this.ghosts[i].drawGhost(this.ctx);
         }
-        this.player.draw(this.ctx);
 
         if (this.currentState === PLAYING_STATES.INITIALIZING) {
             // Game is currently being initialized
@@ -867,25 +1312,33 @@ class Pacman {
             this.draw();
         } else if (this.currentState === PLAYING_STATES.COUNT_DOWN) {
             // Show the countdown for starting the game
-            let remainingTime = Math.round((this.timer + 3.5 * 1000 - Date.now()) / 1000, 0);
+            let remainingTime = Math.round((this.timer + 4.5 * 1000 - Date.now()) / 1000, 0);
             if (remainingTime === 0) {
                 this.currentState = PLAYING_STATES.PLAYING;
-                // this.ghosts[0].startGhost();
                 this.player.draw(this.ctx);
                 for (let i = 0; i < this.ghosts.length; i++) {
                     this.ghosts[i].drawGhost(this.ctx);
                 }
             } else {
-                this.drawCountDown(remainingTime);
+                this.drawCountDown(remainingTime - 1);
             }
         } else if (this.currentState === PLAYING_STATES.DYING) {
             if (Date.now() > this.dyingTimer + 3 * 1000) {
                 this.resetAfterDying();
+                this.audio.beginning.play();
             }
         } else if (this.currentState === PLAYING_STATES.GAME_OVER) {
             this.drawGameOver();
             if (Date.now() > this.dyingTimer + 3 * 1000){
                 this.gameOverHandler();
+                this.currentState = PLAYING_STATES.WAITING;
+            }
+        } else if (this.currentState === PLAYING_STATES.LEVEL_COMPLETE) {
+            this.drawNextLevel();
+            if (Date.now() > this.dyingTimer + 3 * 1000) {
+                this.map = new Map(this.blockSize);
+                this.resetAfterDying();
+                this.audio.beginning.play();
             }
         }
     }
@@ -909,11 +1362,16 @@ class Pacman {
     gameOverHandler() {
         // Post the current state to the backend and redirect to the
         // result page
-        fetch("/highscore", {
+        
+        const csrfToken = this.getCsrfToken();
+
+        fetch("http://thebestpacman.ddns.net/highscore", {
             method: 'POST',
+            mode: "same-origin",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "X-CSRFToken": csrfToken
             },
             body: JSON.stringify({'score': this.player.score})
         }).then(response => {
@@ -921,6 +1379,12 @@ class Pacman {
                 window.location.href = "/pacman";
             }
         });
+    }
+
+    getCsrfToken(){
+        const value = `; ${document.cookie}`;
+        const parts = value.split("; csrftoken=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
     async getPlayerHighScore() {
@@ -936,7 +1400,7 @@ class Pacman {
      * Main function for drawing the map as well as the player on the canvas
      */
     draw() {
-        // Check if we can start the ghost
+        // Check if we can start the ghostass
         if (this.activeGhostCounter < this.ghosts.length) {
             if (this.ghosts[this.activeGhostCounter].isStartable()) {
                 this.activeGhostCounter += 1;
@@ -954,28 +1418,80 @@ class Pacman {
 
         // Check if the player was eaten
         for (let i = 0; i < this.ghosts.length; i++) {
-            if (this.ghosts[i].atePlayer(this.player.position)) {
-                // Player got eaten
-                this.player.died();
-                if (this.player.lives > 0) {
-                    this.dyingTimer = Date.now();
-                    this.currentState = PLAYING_STATES.DYING;
-                } else {
-                    this.dyingTimer = Date.now();
-                    this.currentState = PLAYING_STATES.GAME_OVER;
+            if (this.ghosts[i].collisionDetected(this.player.position) && !this.ghosts[i].goHome) {
+                if (!this.ghosts[i].isEatable) {
+                    // Player got eaten
+                    this.player.died();
+                    this.audio.death.play();
+                    if (this.player.lives > 0) {
+                        this.dyingTimer = Date.now();
+                        this.currentState = PLAYING_STATES.DYING;
+                    } else {
+                        this.dyingTimer = Date.now();
+                        this.currentState = PLAYING_STATES.GAME_OVER;
+                    }
+                    return;
                 }
-                return;
+
+                // Player ate the ghost
+                this.ghosts[i].wasEaten();
+                this.player.addToScore(20);
+                this.audio.eatghost.play();
             }
         }
 
         // Check if the player got new points
         let isItem = this.map.isPlacedItem(this.player.position);
         if (isItem > 0) {
+            
             this.player.addToScore(isItem);
+            
             if (this.activeGhostCounter < this.ghosts.length) {
                 this.ghosts[this.activeGhostCounter].increaseEatenDotsCounter();
             }
+            
+            if (!this.map.isItemLeft()) {
+                // All items were collected by the player
+                this.playerLevel += 1;
+                this.dyingTimer = Date.now();
+                this.currentState = PLAYING_STATES.LEVEL_COMPLETE;
+            }
+
+            if (isItem === MAP_ELEMENTS.BIG_ITEM) {
+                this.audio.eatfruit.play();
+                // Start the frightening mode of the ghosts and make them eatable
+                for (let i = 0; i < this.ghosts.length; i++) {
+                    this.ghosts[i].makeEatable();
+                }
+            }
         }
+    }
+}
+
+
+class PacmanAudio {
+    constructor() {
+        this.beginning = new Audio();
+        this.chomp = new Audio();
+        this.death = new Audio();
+        this.eatfruit = new Audio();
+        this.eatghost = new Audio();
+        this.extrapac = new Audio();
+        this.intermission = new Audio();
+        this.waka = new Audio();
+        this.siren = new Audio();
+    }
+
+    loadAudios() {
+        this.beginning.src = "static/sounds/pacman_beginning.wav";
+        this.chomp.src = "static/sounds/pacman_chomp.wav";
+        this.death.src = "static/sounds/pacman_death.wav";
+        this.eatfruit.src = "static/sounds/pacman_eatfruit.wav";
+        this.eatghost.src = "static/sounds/pacman_eatghost.ogg";
+        this.extrapac.src = "static/sounds/pacman_extrapac.wav";
+        this.intermission.src = "static/sounds/pacman_intermission.wav";
+        this.waka.src = "static/sounds/pacman_eating.ogg";
+        this.siren.src = "static/sounds/pacman_ghost_siren.wav";
     }
 }
 
@@ -984,7 +1500,7 @@ const CANVAS_OFFSET_Y = 40;
 
 /**
  * States of the pacman game
- * @type {{COUNT_DOWN: number, GAME_OVER: number, NOT_STARTED: number, WAITING: number, DYING: number, PLAYING: number, INITIALIZING: number}}
+ * @type {{COUNT_DOWN: number, GAME_OVER: number, NOT_STARTED: number, WAITING: number, DYING: number, PLAYING: number, INITIALIZING: number, LEVEL_COMPLETE: number}}
  */
 const PLAYING_STATES = {
     NOT_STARTED: 0,
@@ -995,6 +1511,7 @@ const PLAYING_STATES = {
     COUNT_DOWN: 5,
     INITIALIZING: 6,
     PAUSE: 7,
+    LEVEL_COMPLETE: 8,
 };
 
 const KEYS = {
@@ -1066,6 +1583,7 @@ const GHOST_INTERSECTIONS = {
     NORMAL: 2,
     SPECIAL: 3,
     GHOST_HOUSE: 4,
+    IGNORE_WHEN_EATEN: 5,
 };
 
 const GHOST_MOVEMENTS = {
@@ -1128,10 +1646,10 @@ const GHOST_ARRAY = [
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 0],
+    [0, 0, 2, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 5, 1, 1, 5, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-    [0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 2, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 2, 1, 1, 1, 1, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
