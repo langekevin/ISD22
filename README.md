@@ -20,7 +20,7 @@ After a user is registered or logged in, if a profile was already created before
 
 In this game Pacman is a total gourmand, he collects points by eating little slices of pizza (his favourite meal prepared by the best Italian chefs) as well as taking small breaks with his beloved dessert - pancakes! He gets so much suger power after eating a pancake that is ready to defeat any health coaches (ghosts) hunting him! He also makes them very sad, when he gets to eat such sweet desserts. After finishing with all food on the map, Pacman is ready for the next level with pizzas and pancakes, because he can eat them nonstop!
 
-Each page is done in a unique for this game color style and theme. Pacman as well as ghosts are drawn uniquely by pieces of code. All pieces of code are written from scratch by us. We really enjoyed putting our hearts (and long nights) into this game!
+Each page is done in a unique for this game color style and theme. Pacman as well as ghosts are drawn uniquely by pieces of code. All pieces of code are written from scratch by us, existing projects were used only as inspiration. We really enjoyed putting our hearts (and long nights) into this game!
 
 # Task Breakdown
 
