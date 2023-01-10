@@ -31,24 +31,21 @@ Each page is done in a unique for this game color style and theme. Pacman as wel
 
 # How can I get the code?
 
-1. **Install git:** To contribute to this project, you first have to install git on your local machine. Therefore you can either install GitHub Desktop from [this website](https://desktop.github.com/) or you can use the cli of Git.
-2. **Clone the project:** To clone the project simply select the repository in GitHub Desktop, click on fetch repository and then open in Visual Studio Code or PyCharm or use
+1. **Clone the project:**
     ```bash
     git clone https://github.com/langekevin/ISD22.git
     ```
-3. **Create a virtual env:** After cloning the repository from GitHub, you have to create a virtual environment for python. To achieve this, just type
+2. **Create a virtual env:** 
     ```bash
     cd ISD22
     python -m venv venv
     venv\Scripts\activate
     ```
-4. **Install the requirements:** To install all the requriements for your project, just type
+3. **Install the requirements:**
 
     ```bash
     pip install -r requirements.txt
     ```
-
-5. **Write your code:** After fetching the repository from GitHub, you can write the code according to the issues in GitHub. Don't forget to commit and push your code afterwards
 
 # Run the server
 
@@ -66,90 +63,81 @@ python manage.py runserver
 
 # Hosting
 
-How the Website ist hosted on PythonAnywhere.
-A virtualenv is used and we have a copy of our code on PythonAnywhere which can be edited and browsed and commited to version control.
-First create an PythonAnywhere Account.
-
 1. **Code upload to PythonAnywhere**
 	Clone the Django project from GitHub
 	```bash
-	$ git clone https://github.com/langekevin/ISD22.git
+	git clone https://github.com/langekevin/ISD22.git
+	cd ISD22
 	```
 
 2. **Creat virtualenv, install Django + other requirements**
 	```bash
-	$ mkvirtualenv --python=/usr/bin/python3.10 pacman-virtulenv
-	(pacman-virtulenv)$ pip install django
-	(pacman-virtulenv)$ pip install -r requirements.txt
+	mkvirtualenv --python=/usr/bin/python3.10 pacman-virtualenv
+	pip install -r requirements.txt
 	```
 
-3. **Setting up web app and WSGI file**
-	1. Save the Directories:
-	List the Django project's name and path, manage.py path
-	```<txt>
-	Directories
+3. **Database setup**
+   - Use the Consoles tab, start a bash console, navigate with `cd` to the directory where the Django project's manage.py is located.
+   - run:
+   ```bash
+   python manage.py migrate
+   ```
 
-	manage.py folder path - /home/gourmetpacman/isd22
-	Project Name - pacman
-	Project Path - /home/gourmetpacman/isd22/pacman
-	virtualenv - pacman-virtulenv
-	```
-	2. Create a Web app with Manual Config
-	- go to the Web tab and create a new web app, 
-	- choose the "Manual Configuration" option with the right version of Python (same as in venv).
-	3. Enter virtualenv name
-	- enter the name of the virtualenv `pacman-virtulenv` in the Virtualenv section on the web tab
-	- click "OK"
-	4. Edit WSGI file
-	Don't change the automatically created file `wsgi.py`. PythonAnywhere ignors this.
-	Edit the WSGI file that has a link inside the "Code" section of the Web tab.
-	- Click on the WSGI file link, an editor will open where you can change it.
-	- Delete everything except the Django section and then uncomment that section. 
-	  Your WSGI file should look like this:
-	```bash
-	# +++++++++++ DJANGO +++++++++++
-	# To use your own Django app use code like this:
-	import os
-	import sys
-
-	# assuming your Django settings file is at '/home/gourmetpacman/isd22/pacman/settings.py'
-	path = '/home/gourmetpacman/isd22'
-	if path not in sys.path:
-	    sys.path.insert(0, path)
-
-	os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
-
-	## Uncomment the lines below depending on your Django version
-	###### then, for Django >=1.5:
-	from django.core.wsgi import get_wsgi_application
-	application = get_wsgi_application()
-	###### or, for older Django <=1.4
-	#import django.core.handlers.wsgi
-	#application = django.core.handlers.wsgi.WSGIHandler()
-	```
-	5. save the file and reload the domain.
-	
-4.**Database setup**
-	- Use the Consoles tab, start a bash console, navigate with `cd` to the directory where the Django project's manage.py is located.
-	- run:
+4. **Create super user**
+   - Create a super user to log into the admin account
 		```bash
-		./manage.py migrate
+		python manage.py createsuperuser
 		```
-	- The website should be live. Just without any design.
+   
 5. **Set up static file**
-	To get some design into the website we have to set up the static files.
 
-	1. Set STATIC_ROOT in settings.py
-		With the STATIC_ROOT variable in settings.py we define the single folder we want to collect all our static files.
+   1. Set `STATIC_ROOT` in settings.py
+
 		```bash
-		STATIC_ROOT = "/home/gourmetpacman/isd22/static"
-	2. Collectstatic
-		With `python3 manage.py collectstatic` it collects all static files from the pacmanapp, and copies them into `STATIC_ROOT`.
-	3. Set up a static files mapping
-		Now, set up a static files mapping to get the web server to serve out the static files.
-			- Go to the Web tab on the PythonAnywhere dashboard
-			- Go to the Static Files section
-			- Enter the same URL as STATIC_URL in the url section (/static/)
-			- Enter the path from STATIC_ROOT into the path section (/home/gourmetpacman/isd22/static)
-		Hit Reload and test the static file mapping by going to retrieve a known static file.
-6. **Play the Game**
+		STATIC_ROOT = "/home/gourmetpacman/isd22/pacmanapp/static"
+		```
+   2. Collect static files
+		```bash
+		python manage.py collectstatic
+		```
+   3. Set up a static files mapping
+      - Go to the Web tab on the PythonAnywhere dashboard
+      - Go to the Static Files section
+      - Enter the same URL as STATIC_URL in the url section (/static/)
+      - Enter the path from STATIC_ROOT into the path section (/home/gourmetpacman/isd22/pacmanapp/static)
+
+6. **Setting up web app and WSGI file**
+   
+	1. Create a Web app with Manual Config
+      	- go to the Web tab and create a new web app, 
+      	- choose the "Manual Configuration" option with the right version of Python (same as in venv).
+	2. Enter virtualenv name
+      	- enter the name of the virtualenv `pacman-virtulenv` in the Virtualenv section on the web tab
+      	- click "OK"
+	3. Edit WSGI file
+	Edit the WSGI file that has a link inside the "Code" section of the Web tab.
+      	- Click on the WSGI file link, an editor will open where you can change it.
+      	- Make sure that the WSGI file looks like the following code:
+
+			```python
+			# +++++++++++ DJANGO +++++++++++
+			# To use your own Django app use code like this:
+			import os
+			import sys
+
+			# assuming your Django settings file is at '/home/gourmetpacman/isd22/pacman/settings.py'
+			path = '/home/gourmetpacman/isd22'
+			if path not in sys.path:
+				sys.path.insert(0, path)
+
+			os.environ['DJANGO_SETTINGS_MODULE'] = 'pacman.settings'
+
+			## Uncomment the lines below depending on your Django version
+			###### then, for Django >=1.5:
+			from django.core.wsgi import get_wsgi_application
+			application = get_wsgi_application()
+			###### or, for older Django <=1.4
+			#import django.core.handlers.wsgi
+			#application = django.core.handlers.wsgi.WSGIHandler()
+			```
+	4. Save the file and reload the application.

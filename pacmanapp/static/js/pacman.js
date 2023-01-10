@@ -44,6 +44,10 @@ class Map {
         this.pizzaBigImage.src = "static/images/pizza_big.svg";
     }
 
+    /**
+     * Draws the board on the map
+     * @param {object} ctx Canvas context object
+     */
     drawPills(ctx) {
         ctx.strokeStyle = "#0033da";
         ctx.lineWidth = 3;
@@ -424,6 +428,11 @@ class Player {
         return newPosition;
     }
 
+    /**
+     * Checks if the player is going out of the map on the left or right side
+     * @param {Position} newPosition New position of the player after moving
+     * @returns The new position after correcting it
+     */
     getsOutOfMap(newPosition) {
         if (newPosition.asInteger(1) !== 15) {
             return newPosition;
@@ -609,10 +618,19 @@ class Ghost {
         }
     }
 
+    /**
+     * Calculates the distance between the current position and the target position
+     * @param {number} x X position of the ghost
+     * @param {number} y Y position of the ghost
+     * @returns Distance between the current position and the target position
+     */
     getDistanceToTarget(x, y) {
         return Math.sqrt((x - this.targetPosition.x) ** 2 + (y - this.targetPosition.y) ** 2)
     }
 
+    /**
+     * Function is starting the ghost
+     */
     startGhost() {
         this.hasStarted = true;
         this.isEatable = false;
@@ -622,10 +640,17 @@ class Ghost {
         this.timer = Date.now();
     }
 
+    /**
+     * Function increase the counter for the dots that were eaten by the player.
+     */
     increaseEatenDotsCounter() {
         this.eatenDotsCounter++;
     }
 
+    /**
+     * Check if the starting conditions of the ghost are met
+     * @returns{bool} true if the ghost is able to start
+     */
     isStartable(){
         if (this.eatenDotsCounter >= this.eatenDotsMin) {
             this.startGhost();
@@ -634,6 +659,9 @@ class Ghost {
         return false;
     }
 
+    /**
+     * Function gets called when the ghost was eaten by the player
+     */
     wasEaten() {
         this.goHome = true;
         this.ghostSpeed = 0.25;
@@ -709,6 +737,11 @@ class Ghost {
         return bestDecision;
     }
 
+    /**
+     * Function checks the current mode of the player and sets the new,
+     * if the time limit of the current mode is reached
+     * @param {Position} playerPosition 
+     */
     checkCurrentMode(playerPosition) {
         if (this.mode === "SCATTER") {
             this.targetPosition = this.homePosition;
@@ -733,6 +766,10 @@ class Ghost {
         }
     }
 
+    /**
+     * Function moves the ghost to the next position
+     * @param {Position} playerPosition Current position of the player
+     */
     move(playerPosition) {
         if (!this.hasStarted) {
             return;
@@ -775,6 +812,9 @@ class Ghost {
         this.position = newPosition;
     }
 
+    /**
+     * Function calculates the fastest direction for an eaten ghost to go home.
+     */
     findFastestWayHome() {
         if (!this.position.isOnSquare()) {
             return;
@@ -848,6 +888,9 @@ class Ghost {
         return true;
     }
 
+    /**
+     * Function checks if the current direction of the ghost needs to be corrected
+     */
     correctDirection() {
         // Check if ghost is on a whole square
         if (!this.position.isOnSquare()) {
@@ -933,6 +976,14 @@ class Ghost {
         }
     }
 
+    /**
+     * Checks if there is a wall in the direction the ghost wants to go
+     * @param {number} x Current Position in X
+     * @param {number} y Current Position in Y
+     * @param {number} direction Current direction of the ghost
+     * @param {bool} allowGhostHouse Indicator if the ghost is allowed to move into the ghosts house
+     * @returns True if there is a wall in the given direction
+     */
     isWallInDirection(x, y, direction, allowGhostHouse = false) {
         switch (direction) {
             case KEYS.A:
@@ -948,6 +999,12 @@ class Ghost {
         }
     }
 
+    /**
+     * Checks if the ghost is going out of the map and sets it to the
+     * new position if so
+     * @param {Position} newPosition New Position of the ghost
+     * @returns{Position}
+     */
     getsOutOfMap(newPosition) {
         if (newPosition.asInteger(1) !== 15) {
             return newPosition;
@@ -962,6 +1019,11 @@ class Ghost {
         return newPosition;
     }
 
+    /**
+     * Calculates the new position of the ghost depending on the direction it is going.
+     * @param {number} direction Current direction the ghost is going
+     * @returns{Position} New Position of the ghost
+     */
     getNextPosition(direction) {
         return new Position(
             this.position.x + ((direction == KEYS.A && -this.ghostSpeed) || (direction == KEYS.D && this.ghostSpeed) || 0),
@@ -969,6 +1031,10 @@ class Ghost {
         );
     }
 
+    /**
+     * Draws the ghost on the map
+     * @param {object} ctx Canvas object
+     */
     drawGhost(ctx) {
         // Colors for the ghost if it is eatable
         let background = "#072A6C";
@@ -1099,6 +1165,11 @@ class Ghost {
         }
     }
 
+    /**
+     * Checks if the player collided with the ghost
+     * @param {Position} playerPosition Position of the player
+     * @returns True if there is a collision between the ghost and the player
+     */
     collisionDetected(playerPosition) {
         const distance = Math.sqrt((playerPosition.x - this.position.x) ** 2 + (playerPosition.y - this.position.y) ** 2);
         return distance < 0.5;
@@ -1198,6 +1269,10 @@ class Pacman {
         this.ctx.fillText("Press N to start new game...", this.blockSize * 15, this.blockSize * 18);
     }
 
+    /**
+     * Draws the count down on the canvas
+     * @param {number} remainingTime Remaining time of the count down
+     */
     drawCountDown(remainingTime) {
         this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
@@ -1211,6 +1286,9 @@ class Pacman {
         this.ctx.fillText(remainingTime.toString(), this.blockSize * 15, this.blockSize * 20);
     }
 
+    /**
+     * Draws the GAME OVER on the canvas
+     */
     drawGameOver() {
         this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
@@ -1221,6 +1299,9 @@ class Pacman {
         this.ctx.fillText("GAME OVER", this.blockSize * 15, this.blockSize * 18);
     }
 
+    /**
+     * Draws the information for the next level on the map
+     */
     drawNextLevel() {
         this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
         this.ctx.fillRect(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
@@ -1309,7 +1390,7 @@ class Pacman {
             // Game is in waiting state
         } else if (this.currentState === PLAYING_STATES.PLAYING) {
             // Game play is running
-            this.draw();
+            this.gameplay();
         } else if (this.currentState === PLAYING_STATES.COUNT_DOWN) {
             // Show the countdown for starting the game
             let remainingTime = Math.round((this.timer + 4.5 * 1000 - Date.now()) / 1000, 0);
@@ -1343,6 +1424,9 @@ class Pacman {
         }
     }
 
+    /**
+     * Resets the states after playing
+     */
     resetAfterDying() {
         this.player.position = new Position(14.5, 24);
         this.player.due = null;
@@ -1359,6 +1443,9 @@ class Pacman {
         this.dyingTimer = null;
     }
 
+    /**
+     * Posts the score to the backend after the player finally died
+     */
     gameOverHandler() {
         // Post the current state to the backend and redirect to the
         // result page
@@ -1381,12 +1468,19 @@ class Pacman {
         });
     }
 
+    /**
+     * Gets the csrf-token from the cookies
+     * @returns{string}
+     */
     getCsrfToken(){
         const value = `; ${document.cookie}`;
         const parts = value.split("; csrftoken=");
         if (parts.length === 2) return parts.pop().split(";").shift();
     }
 
+    /**
+     * Requests the current high score of the player from the backend
+     */
     async getPlayerHighScore() {
         const response = await fetch('/highscore');
         const data = await response.json();
@@ -1399,7 +1493,7 @@ class Pacman {
     /**
      * Main function for drawing the map as well as the player on the canvas
      */
-    draw() {
+    gameplay() {
         // Check if we can start the ghostass
         if (this.activeGhostCounter < this.ghosts.length) {
             if (this.ghosts[this.activeGhostCounter].isStartable()) {
