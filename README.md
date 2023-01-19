@@ -78,7 +78,7 @@ python manage.py runserver
 
 3. **Database setup**
    - Use the Consoles tab, start a bash console, navigate with `cd` to the directory where the Django project's manage.py is located.
-   - run:
+   - Run:
    ```bash
    python manage.py migrate
    ```
@@ -140,4 +140,4 @@ python manage.py runserver
 			#import django.core.handlers.wsgi
 			#application = django.core.handlers.wsgi.WSGIHandler()
 			```
-	4. Save the file and reload the application.
+	4. Save the file and reload the application
